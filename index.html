@@ -533,7 +533,7 @@ Status: Officially Unacknowledged</p>
       el("output").value = prompt;
     };
 
-    ["creature","location","behavior","camera","transmission","year","ar","chaos","notes","lock"]
+    ["creature","class","location","behavior","camera","transmission","year","ar","chaos","notes","lock"]
       .forEach(id => el(id).addEventListener("input", build));
 
     el("copy").addEventListener("click", async () => {
