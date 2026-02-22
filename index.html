@@ -6,10 +6,13 @@
   <title>National Anomaly Field Office</title>
 
   <style>
+    /* =========================
+       1) COLORS / VARIABLES
+       ========================= */
     :root{
       --bg: #07080a;
-      --panel: rgba(18, 20, 24, 0.55);
-      --panel2: rgba(14, 16, 20, 0.40);
+      --panel: rgba(18, 20, 24, 0.78);
+      --panel2: rgba(14, 16, 20, 0.62);
       --border: rgba(255,255,255,0.12);
       --border2: rgba(255,255,255,0.08);
       --text: rgba(245,246,250,0.92);
@@ -35,24 +38,28 @@
       letter-spacing: 0.2px;
     }
 
+    /* =========================
+       2) OVERLAYS (scanlines + grain)
+       ========================= */
+
     /* scanlines */
-/* scanlines - FINAL (subtle but visible) */
-body::before{
-  content:"";
-  position: fixed;
-  inset: 0;
-  pointer-events:none;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255,255,255,0.07) 0px,
-    rgba(255,255,255,0.07) 1px,
-    rgba(0,0,0,0) 4px,
-    rgba(0,0,0,0) 7px
-  );
-  opacity: 0.22;
-  mix-blend-mode: overlay;
-  z-index: 10;
-}
+    body::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.06) 0px,
+        rgba(255,255,255,0.06) 1px,
+        rgba(0,0,0,0.00) 3px,
+        rgba(0,0,0,0.00) 7px
+      );
+      opacity: 0.22;
+      mix-blend-mode: overlay;
+      z-index: 5;
+    }
+
     /* grain */
     body::after{
       content:"";
@@ -65,12 +72,67 @@ body::before{
       filter: blur(0.2px);
       mix-blend-mode: overlay;
       transform: rotate(0.3deg);
+      z-index: 4;
     }
-.wrap{ position: relative; z-index: 2; }
+
+    /* =========================
+       3) TOP STRIP / CRT / WATERMARK
+       ========================= */
+
+    .topstrip{
+      width: 100%;
+      background: linear-gradient(90deg, #3a0000, #6a0000, #3a0000);
+      color: #ffb3b3;
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 2px;
+      padding: 8px 0;
+      font-weight: 800;
+      text-transform: uppercase;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    /* CRT overlay (whole screen tint) */
+    .crt{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+      background:
+        linear-gradient(rgba(0,255,140,0.18), rgba(0,255,140,0.18)),
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.65) 100%);
+      mix-blend-mode: multiply;
+      opacity: 0.80;
+    }
+
+    /* watermark behind the UI */
+    .watermark{
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-25deg);
+      font-size: 140px;
+      font-weight: 900;
+      letter-spacing: 12px;
+      color: rgba(0,255,150,0.22);
+      pointer-events: none;
+      z-index: 1;
+      white-space: nowrap;
+    }
+
+    /* =========================
+       4) LAYOUT / UI
+       ========================= */
+
     .wrap{
       max-width: 1120px;
       margin: 0 auto;
       padding: 22px 18px 70px;
+      position: relative;
+      z-index: 10; /* keep UI above watermark/CRT */
     }
 
     header{
@@ -82,30 +144,13 @@ body::before{
     }
 
     .titleblock{
-  flex: 1;
-  padding: 16px 18px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background:
-    linear-gradient(180deg, rgba(24,28,34,0.96), rgba(12,14,18,0.88));
-  box-shadow: 0 18px 60px rgba(0,0,0,0.55);
-  position: relative;
-  overflow: hidden;
-}
-
-.titleblock::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background: repeating-linear-gradient(
-    to right,
-    rgba(255,255,255,0.06) 0px,
-    rgba(255,255,255,0.06) 1px,
-    rgba(0,0,0,0) 10px
-  );
-  opacity: 0.08;
-  pointer-events:none;
-}
+      flex: 1;
+      padding: 16px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: linear-gradient(180deg, rgba(24,28,34,0.96), rgba(12,14,18,0.88));
+      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+    }
 
     h1{
       margin: 0 0 6px;
@@ -120,6 +165,7 @@ body::before{
       color: var(--muted);
       font-size: 13px;
       line-height: 1.45;
+      white-space: pre-line;
     }
 
     .badge{
@@ -145,33 +191,13 @@ body::before{
     }
 
     .card{
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: calc(var(--radius) + 2px);
-  background: linear-gradient(180deg, rgba(26,30,38,0.92), rgba(12,14,18,0.78));
-  box-shadow: 0 24px 80px rgba(0,0,0,0.65);
-  padding: 16px;
-  backdrop-filter: blur(10px);
-}
-.card{
-  position: relative;
-  overflow: hidden;
-}
-
-.card::before{
-  content:"";
-  position:absolute;
-  inset: -2px;
-  background: radial-gradient(600px 180px at 20% 0%, rgba(165,220,255,0.18), transparent 60%),
-              radial-gradient(520px 180px at 85% 20%, rgba(180,140,255,0.14), transparent 55%);
-  pointer-events:none;
-}
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 14px;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: calc(var(--radius) + 2px);
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
+      box-shadow: 0 24px 80px rgba(0,0,0,0.65);
+      padding: 16px;
+      backdrop-filter: blur(10px);
     }
-    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
 
     .row3{
       display:grid;
@@ -180,6 +206,14 @@ body::before{
       margin-bottom: 14px;
     }
     @media (max-width: 900px){ .row3{ grid-template-columns: 1fr; } }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
 
     label{
       display:block;
@@ -224,177 +258,104 @@ body::before{
     }
 
     button{
-  width:auto;
-  padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: linear-gradient(180deg, rgba(24,28,34,0.85), rgba(10,12,16,0.75));
-  color: var(--text);
-  cursor:pointer;
-  transition: transform 120ms ease, border-color 120ms ease, filter 120ms ease;
-}
+      width:auto;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: linear-gradient(180deg, rgba(24,28,34,0.85), rgba(10,12,16,0.75));
+      color: var(--text);
+      cursor:pointer;
+      transition: transform 120ms ease, border-color 120ms ease, filter 120ms ease;
+    }
+    button:hover{
+      transform: translateY(-1px);
+      border-color: rgba(165,220,255,0.55);
+      filter: brightness(1.12);
+    }
+    button:active{ transform: translateY(0px); }
 
-button:hover{
-  transform: translateY(-1px);
-  border-color: rgba(165,220,255,0.55);
-  filter: brightness(1.12);
-}
-
-button:active{ transform: translateY(0px); }
     .small{
       font-size: 12px;
       color: var(--muted);
       margin-top: 8px;
       line-height: 1.4;
     }
-  .classbar{
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(10,12,16,0.55);
-  margin: 10px 0 8px;
-  font-size: 11px;
-  letter-spacing: 1.1px;
-  text-transform: uppercase;
-  color: rgba(245,246,250,0.75);
-}
- .topstrip{
-  width: 100%;
-  background: linear-gradient(90deg, #3a0000, #6a0000, #3a0000);
-  color: #ffb3b3;
-  text-align: center;
-  font-size: 12px;
-  letter-spacing: 2px;
-  padding: 8px 0;
-  font-weight: bold;
-  text-transform: uppercase;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.6);
-}
-    /* Giant background watermark */
-body::after{
-  content: "NAFO ARCHIVE";
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-25deg);
-  font-size: 140px;
-  font-weight: 900;
-  letter-spacing: 12px;
-  color: rgba(0,255,150,0.75);
-  pointer-events: none;
-  z-index: 0;
-  white-space: nowrap;
-}
-    .watermark{
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-25deg);
-  font-size: 140px;
-  font-weight: 900;
-  letter-spacing: 12px;
-  color: rgba(0,255,150,0.22); /* <-- this makes it visible */
-  pointer-events: none;
-  z-index: 0;
-  white-space: nowrap;
-}
-  /* CRT tint overlay (big obvious version) */
-.crt{
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9998;
 
-  /* green glow + vignette */
-  background:
-  /* green wash everywhere */
-  linear-gradient(rgba(0,255,140,0.18), rgba(0,255,140,0.18)),
-  /* darker edges (monitor vignette) */
-  radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.65) 100%);
-mix-blend-mode: multiply;
-opacity: 0.85;
-  background-size: 100% 100%, 100% 100%;
-  filter: contrast(1.08) saturate(1.1);
-} 
-    @keyframes crtFlicker{
-  0%, 100% { opacity: 0.60; }
-  50%      { opacity: 0.72; }
-}
-
-.crt{
-  animation: crtFlicker 5s infinite;
-}
+    .classbar{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(10,12,16,0.55);
+      margin: 10px 0 8px;
+      font-size: 11px;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: rgba(245,246,250,0.75);
+    }
   </style>
 </head>
 
 <body>
+  <!-- TOP STRIP -->
+  <div class="topstrip">⚠ CLASSIFIED • NATIONAL ANOMALY FIELD OFFICE • EYES ONLY • LEVEL 4 CLEARANCE REQUIRED</div>
+
+  <!-- CRT + WATERMARK LAYERS -->
   <div class="crt"></div>
   <div class="watermark">NAFO ARCHIVE</div>
-  <div class="topstrip">
-  ⚠ CLASSIFIED • NATIONAL ANOMALY FIELD OFFICE • EYES ONLY • LEVEL 4 CLEARANCE REQUIRED
-</div>
+
+  <!-- MAIN UI -->
   <div class="wrap">
     <header>
       <div class="titleblock">
         <h1>National Anomaly Field Office</h1>
-        <p class="sub">Internal Field Documentation Interface  
+        <p class="sub">Internal Field Documentation Interface
 Status: Officially Unacknowledged</p>
       </div>
+      <div class="badge"><span class="dot"></span> SIGNAL: STABLE • ARCHIVE: OPEN</div>
+    </header>
+
+    <div class="card">
+
+      <!-- CREATURE + CLASSIFICATION + LOCATION -->
       <div class="row3">
-  <div>
-    <label>Creature / Entity</label>
-    <select id="creature">
-      <option>Wendigo</option>
-      <option>Mothman</option>
-      <option>Kelpie</option>
-      <option>Fae Sentinel</option>
-      <option>Elder Deep One</option>
-      <option>Leviathan</option>
-      <option>Shadow Entity</option>
-      <option>Geometric Emissary</option>
-      <option>Fungal Humanoid</option>
-      <option>Marsh Revenant</option>
-      <option>Forest Watcher</option>
-      <option>Coastal Apparition</option>
-      <option>Unknown Bipedal Organism</option>
-      <option>Antlered Figure</option>
-      <option>Unidentified Winged Entity</option>
-    </select>
-    <div class="small">We can expand these lists again once the site is styling correctly.</div>
-  </div>
+        <div>
+          <label>Creature / Entity</label>
+          <select id="creature">
+            <option>Wendigo</option>
+            <option>Mothman</option>
+            <option>Kelpie</option>
+            <option>Fae Sentinel</option>
+            <option>Elder Deep One</option>
+            <option>Leviathan</option>
+            <option>Shadow Entity</option>
+            <option>Geometric Emissary</option>
+            <option>Fungal Humanoid</option>
+            <option>Marsh Revenant</option>
+            <option>Forest Watcher</option>
+            <option>Coastal Apparition</option>
+            <option>Unknown Bipedal Organism</option>
+            <option>Antlered Figure</option>
+            <option>Unidentified Winged Entity</option>
+          </select>
+        </div>
 
-  <div>
-    <label>Classification</label>
-    <select id="class">
-      <option>Cryptid</option>
-      <option>Fae</option>
-      <option>Maritime Entity</option>
-      <option>Interdimensional</option>
-      <option>Occult Construct</option>
-      <option>Biological Anomaly</option>
-      <option>Environmental Mimic</option>
-      <option>Unknown</option>
-    </select>
-  </div>
-
-  <div>
-    <label>Location / Setting</label>
-    <select id="location">
-      <option>mist-covered Blue Ridge forest clearing with damp leaf litter</option>
-      <option>dark Atlantic tide pools on a rocky New England shoreline</option>
-      <option>fog-choked lighthouse approach road, sea spray on asphalt</option>
-      <option>abandoned industrial waterfront with rusted bridges and cranes</option>
-      <option>empty motel corridor, buzzing fluorescents, carpet pattern repeating</option>
-      <option>closed shopping mall atrium, skylight rain, abandoned kiosk</option>
-      <option>moonlit bog with peat pools and low hovering fog</option>
-      <option>quiet mountain rest stop at night, fluorescent hum, fog beyond</option>
-    </select>
-  </div>
-</div>
+        <div>
+          <label>Classification</label>
+          <select id="classification">
+            <option>Cryptid</option>
+            <option>Fae</option>
+            <option>Maritime Entity</option>
+            <option>Interdimensional</option>
+            <option>Occult Construct</option>
+            <option>Biological Anomaly</option>
+            <option>Environmental Mimic</option>
+            <option>Unknown</option>
+          </select>
+        </div>
 
         <div>
           <label>Location / Setting</label>
@@ -467,11 +428,11 @@ Status: Officially Unacknowledged</p>
       <div class="grid">
         <div>
           <label>Extra Notes (optional)</label>
-          <input id="notes" placeholder="e.g., timecode burn-in, lodge watermark, clear silhouette" />
+          <input id="notes" placeholder="e.g., timecode burn-in, watermark, clear silhouette" />
         </div>
 
         <div>
-         <label>Subject Lock Strength</label>
+          <label>Subject Lock Strength</label>
           <select id="lock">
             <option value="normal" selected>Normal</option>
             <option value="strong">Strong (repeat subject at start)</option>
@@ -481,10 +442,10 @@ Status: Officially Unacknowledged</p>
       </div>
 
       <div class="classbar">
-  <span>FIELD REPORT GENERATOR</span>
-  <span class="mono">ARCHIVE NODE 32</span>
-</div>
-      
+        <span>FIELD REPORT GENERATOR</span>
+        <span class="mono">ARCHIVE NODE 32</span>
+      </div>
+
       <label>Generated Prompt</label>
       <textarea id="output" class="mono" readonly></textarea>
 
@@ -493,12 +454,16 @@ Status: Officially Unacknowledged</p>
         <button id="randomize">Randomize</button>
       </div>
 
-      <div class="small">Once this is styling correctly, we’ll re-add the huge dropdown library again.</div>
+      <div class="small">Now that the structure is clean again, we can safely expand dropdown lists without chaos.</div>
     </div>
   </div>
 
   <script>
+    /* =========================
+       5) JAVASCRIPT (the brain)
+       ========================= */
     const el = (id) => document.getElementById(id);
+
     const pickRandom = (selectId) => {
       const s = el(selectId);
       s.selectedIndex = Math.floor(Math.random() * s.options.length);
@@ -506,7 +471,7 @@ Status: Officially Unacknowledged</p>
 
     const build = () => {
       const creature = el("creature").value;
-      const cls = el("class").value;
+      const cls = el("classification").value;
       const location = el("location").value;
       const behavior = el("behavior").value;
       const camera = el("camera").value;
@@ -521,9 +486,9 @@ Status: Officially Unacknowledged</p>
       let lockTail = "";
 
       if (lock === "strong") {
-        subjectLead = `${creature}, ${creature}`;
+        subjectLead = `${subjectLead}, ${subjectLead}`;
       } else if (lock === "max") {
-        subjectLead = `${creature}, ${creature}`;
+        subjectLead = `${subjectLead}, ${subjectLead}`;
         lockTail = ", documentary camera locked on subject, clear silhouette definition, subject centered";
       }
 
@@ -533,8 +498,14 @@ Status: Officially Unacknowledged</p>
       el("output").value = prompt;
     };
 
-    ["creature","class","location","behavior","camera","transmission","year","ar","chaos","notes","lock"]
-      .forEach(id => el(id).addEventListener("input", build));
+    const bind = (id) => {
+      const node = el(id);
+      node.addEventListener("input", build);
+      node.addEventListener("change", build);
+    };
+
+    ["creature","classification","location","behavior","camera","transmission","year","ar","chaos","notes","lock"]
+      .forEach(bind);
 
     el("copy").addEventListener("click", async () => {
       await navigator.clipboard.writeText(el("output").value);
@@ -543,12 +514,11 @@ Status: Officially Unacknowledged</p>
     });
 
     el("randomize").addEventListener("click", () => {
-      ["creature","class","location","behavior","camera","transmission","year","ar","chaos","notes","lock"]
+      ["creature","classification","location","behavior","camera","transmission","year","chaos"].forEach(pickRandom);
       build();
     });
 
     build();
   </script>
-</div>
 </body>
 </html>
