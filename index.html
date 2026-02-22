@@ -3,559 +3,344 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pale Lodge Prompt Generator (MidJourney V7)</title>
+  <title>Cryptid Helper — Pale Lodge (MJ V7)</title>
+
   <style>
-  :root{
-    --bg: #07080a;
-    --panel: rgba(18, 20, 24, 0.86);
-    --panel2: rgba(14, 16, 20, 0.72);
-    --border: rgba(255, 255, 255, 0.12);
-    --border2: rgba(255, 255, 255, 0.08);
-    --text: rgba(245, 246, 250, 0.92);
-    --muted: rgba(245, 246, 250, 0.62);
-    --muted2: rgba(245, 246, 250, 0.42);
-    --accent: rgba(165, 220, 255, 0.85);
-    --warn: rgba(255, 214, 133, 0.9);
-    --radius: 18px;
-    --radius2: 14px;
-    --pad: 12px;
-    --pad2: 10px;
-    --shadow: 0 20px 60px rgba(0,0,0,0.55);
-  }
+    :root{
+      --bg: #07080a;
+      --panel: rgba(18, 20, 24, 0.86);
+      --panel2: rgba(14, 16, 20, 0.72);
+      --border: rgba(255,255,255,0.12);
+      --border2: rgba(255,255,255,0.08);
+      --text: rgba(245,246,250,0.92);
+      --muted: rgba(245,246,250,0.62);
+      --muted2: rgba(245,246,250,0.42);
+      --radius: 18px;
+      --radius2: 14px;
+      --shadow: 0 20px 60px rgba(0,0,0,0.55);
+    }
 
-  *{ box-sizing:border-box; }
-  html,body{ height:100%; }
-  body{
-    margin: 0;
-    color: var(--text);
-    background: radial-gradient(1200px 700px at 15% 10%, rgba(70,120,160,0.18), transparent 60%),
-                radial-gradient(900px 650px at 85% 20%, rgba(120,90,160,0.14), transparent 55%),
-                radial-gradient(1100px 800px at 50% 90%, rgba(80,120,100,0.12), transparent 55%),
-                linear-gradient(180deg, #050608 0%, #07080a 40%, #050608 100%);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    letter-spacing: 0.2px;
-  }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
 
-  /* Subtle film grain + scanlines overlay */
-  body::before{
-    content:"";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background:
-      repeating-linear-gradient(
+    body{
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(70,120,160,0.18), transparent 60%),
+        radial-gradient(900px 650px at 85% 20%, rgba(120,90,160,0.14), transparent 55%),
+        radial-gradient(1100px 800px at 50% 90%, rgba(80,120,100,0.12), transparent 55%),
+        linear-gradient(180deg, #050608 0%, #07080a 40%, #050608 100%);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      letter-spacing: 0.2px;
+    }
+
+    /* scanlines */
+    body::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      background: repeating-linear-gradient(
         to bottom,
         rgba(255,255,255,0.04) 0px,
         rgba(255,255,255,0.04) 1px,
         rgba(0,0,0,0.00) 2px,
         rgba(0,0,0,0.00) 5px
       );
-    opacity: 0.12;
-    mix-blend-mode: overlay;
-  }
-  body::after{
-    content:"";
-    position: fixed;
-    inset: -40px;
-    pointer-events: none;
-    background-image:
-      radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
-    background-size: 3px 3px;
-    opacity: 0.06;
-    filter: blur(0.2px);
-    mix-blend-mode: overlay;
-    transform: rotate(0.3deg);
-  }
+      opacity: 0.12;
+      mix-blend-mode: overlay;
+    }
+    /* grain */
+    body::after{
+      content:"";
+      position: fixed;
+      inset: -40px;
+      pointer-events:none;
+      background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 3px 3px;
+      opacity: 0.06;
+      filter: blur(0.2px);
+      mix-blend-mode: overlay;
+      transform: rotate(0.3deg);
+    }
 
-  .wrap{
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 22px 18px 70px;
-  }
+    .wrap{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px 18px 70px;
+    }
 
-  header{
-    display:flex;
-    align-items:flex-start;
-    justify-content: space-between;
-    gap: 18px;
-    margin-bottom: 18px;
-  }
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
 
-  .titleblock{
-    flex: 1;
-    padding: 16px 18px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border2);
-    background: linear-gradient(180deg, rgba(18,20,24,0.68), rgba(12,14,18,0.50));
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-  }
-  .titleblock::before{
-    content:"";
-    position:absolute;
-    inset:-1px;
-    background:
-      linear-gradient(120deg, transparent 0%, rgba(165,220,255,0.10) 45%, transparent 70%);
-    opacity: 0.35;
-    transform: translateX(-40%);
-  }
-  .titleblock:hover::before{
-    transform: translateX(40%);
-    transition: transform 900ms ease;
-  }
+    .titleblock{
+      flex: 1;
+      padding: 16px 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border2);
+      background: linear-gradient(180deg, rgba(18,20,24,0.68), rgba(12,14,18,0.50));
+      box-shadow: var(--shadow);
+    }
 
-  h1{
-    margin: 0 0 6px;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-  }
+    h1{
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
 
-  .sub{
-    margin: 0;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.45;
-  }
+    .sub{
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
 
-  .badge{
-    display:inline-flex;
-    align-items:center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: rgba(10,12,16,0.55);
-    color: var(--muted);
-    font-size: 12px;
-    white-space: nowrap;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-  }
-  .dot{
-    width: 8px; height: 8px;
-    border-radius: 999px;
-    background: rgba(165,220,255,0.95);
-    box-shadow: 0 0 0 3px rgba(165,220,255,0.15);
-  }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(10,12,16,0.55);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      height: fit-content;
+    }
 
-  .card{
-    border: 1px solid var(--border2);
-    border-radius: calc(var(--radius) + 2px);
-    background: linear-gradient(180deg, var(--panel), var(--panel2));
-    box-shadow: var(--shadow);
-    padding: 16px;
-    backdrop-filter: blur(10px);
-  }
+    .dot{
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      background: rgba(165,220,255,0.95);
+      box-shadow: 0 0 0 3px rgba(165,220,255,0.15);
+    }
 
-  .grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-  @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
+    .card{
+      border: 1px solid var(--border2);
+      border-radius: calc(var(--radius) + 2px);
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
+      box-shadow: var(--shadow);
+      padding: 16px;
+      backdrop-filter: blur(10px);
+    }
 
-  .row3{
-    display:grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 14px;
-  }
-  @media (max-width: 900px){ .row3{ grid-template-columns: 1fr; } }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
 
-  label{
-    display:block;
-    font-size: 11px;
-    color: var(--muted2);
-    margin: 0 0 7px;
-    letter-spacing: 0.7px;
-    text-transform: uppercase;
-  }
+    .row3{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 900px){ .row3{ grid-template-columns: 1fr; } }
 
-  select, input, textarea{
-    width: 100%;
-    padding: 12px 12px;
-    border-radius: var(--radius2);
-    border: 1px solid var(--border);
-    background: rgba(10, 12, 16, 0.55);
-    color: var(--text);
-    outline: none;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
-  }
-  select:focus, input:focus, textarea:focus{
-    border-color: rgba(165,220,255,0.55);
-    box-shadow: 0 0 0 4px rgba(165,220,255,0.12);
-  }
+    label{
+      display:block;
+      font-size: 11px;
+      color: var(--muted2);
+      margin: 0 0 7px;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+    }
 
-  textarea{
-    height: 220px;
-    resize: vertical;
-    line-height: 1.35;
-  }
+    select, input, textarea{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      background: rgba(10,12,16,0.55);
+      color: var(--text);
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    select:focus, input:focus, textarea:focus{
+      border-color: rgba(165,220,255,0.55);
+      box-shadow: 0 0 0 4px rgba(165,220,255,0.12);
+    }
 
-  .mono{
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 12.5px;
-  }
+    textarea{
+      height: 220px;
+      resize: vertical;
+      line-height: 1.35;
+    }
 
-  .actions{
-    display:flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 12px;
-  }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12.5px;
+    }
 
-  button{
-    width: auto;
-    padding: 10px 14px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: rgba(14,16,20,0.70);
-    color: var(--text);
-    cursor: pointer;
-    transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
-  }
-  button:hover{
-    transform: translateY(-1px);
-    border-color: rgba(165,220,255,0.45);
-    background: rgba(16,18,22,0.82);
-  }
-  button:active{ transform: translateY(0px); }
+    .actions{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
 
-  .small{
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 8px;
-    line-height: 1.4;
-  }
+    button{
+      width:auto;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(14,16,20,0.70);
+      color: var(--text);
+      cursor:pointer;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+    button:hover{
+      transform: translateY(-1px);
+      border-color: rgba(165,220,255,0.45);
+      background: rgba(16,18,22,0.82);
+    }
+    button:active{ transform: translateY(0px); }
 
-  .callout{
-    margin-top: 12px;
-    padding: 10px 12px;
-    border-radius: var(--radius2);
-    border: 1px dashed rgba(255,214,133,0.35);
-    background: rgba(255,214,133,0.06);
-    color: rgba(255,214,133,0.88);
-    font-size: 12px;
-  }
-
-  .hr{
-    height:1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
-    margin: 14px 0;
-  }
-</style>
+    .small{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>Pale Lodge Prompt Generator (MidJourney V7)</h1>
-  <p>Ultra-wide Lodge Broadcast aesthetic. Defaults to <span class="mono">--ar 32:9 --v 7 --style raw</span>. Designed to keep the subject visible in 32:9.</p>
+  <div class="wrap">
+    <header>
+      <div class="titleblock">
+        <h1>Cryptid Helper</h1>
+        <p class="sub">Pale Lodge transmission composer for MidJourney V7. Default output: <span class="mono">--ar 32:9 --v 7 --style raw</span></p>
+      </div>
+      <div class="badge"><span class="dot"></span> SIGNAL: STABLE • ARCHIVE: OPEN</div>
+    </header>
 
-  <div class="card">
-    <div class="grid">
-      <div>
-        <label>Creature / Entity</label>
-        <select id="creature">
-          <!-- Appalachian / North American -->
-          <option>Tall antlered Appalachian cryptid, antler-crowned forest entity</option>
-          <option>Pale mountain crawler, ridge-line nocturnal specimen</option>
-          <option>Winged omen entity resembling Mothman, aerial cryptid</option>
-          <option>Jersey Devil-like winged ungulate, pine-barren aerial specimen</option>
-          <option>Frogman-style amphibious humanoid, riverbank anomaly</option>
-          <option>Ozark howler-like predator, unseen vocal woodland specimen</option>
-          <option>Thunderbird-like massive raptor, storm-front aerial anomaly</option>
-          <option>Skunk-ape / swamp hominid, marshland bipedal specimen</option>
-          <option>Dogman-like canid humanoid, rural road-edge presence</option>
-          <option>Flatwoods-style visitor entity, small-town field anomaly</option>
-          <option>Long-limbed “crawler” humanoid, culvert and treeline stalker</option>
-          <option>Black-eyed watcher, human-adjacent visitation phenomenon</option>
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Creature / Entity</label>
+          <select id="creature">
+            <option>Tall antlered Appalachian cryptid, antler-crowned forest entity</option>
+            <option>Deep-sea Lovecraftian humanoid entity, amphibious coastal cryptid</option>
+            <option>Winged omen entity resembling Mothman, aerial cryptid</option>
+            <option>Kelpie-like equine water spirit, marsh predator specimen</option>
+            <option>Unseelie court sentinel, antlered fae guardian</option>
+            <option>Cephalopod-limbed elder organism, intertidal anomaly</option>
+            <option>Offshore leviathan silhouette, abyssal surface disturbance</option>
+            <option>Living shadow mass with tendrils, light-absorbing silhouette anomaly</option>
+            <option>Geometric emissary entity, impossible-angle biological mimic</option>
+            <option>Fungal humanoid, spore-textured forest entity</option>
+          </select>
+          <div class="small">We can expand these lists again once the site is styling correctly.</div>
+        </div>
 
-          <!-- European myth / folklore -->
-          <option>Kelpie-like equine water spirit, marsh predator specimen</option>
-          <option>Selkie-like seal-human entity, shoreline observer</option>
-          <option>Banshee-like wailer presence, rural apparition anomaly</option>
-          <option>Barghest-like shadow hound, omen pursuit phenomenon</option>
-          <option>Green Man-like woodland guardian, arboreal humanoid anomaly</option>
-          <option>Giant black goat apparition, roadside folklore specimen</option>
-          <option>Rusalka-like water apparition, river margin anomaly</option>
-
-          <!-- Fae / fairies (eerie, documentary) -->
-          <option>Fae envoy, slender luminous figure with moth-wing shimmer</option>
-          <option>Unseelie court sentinel, antlered fae guardian</option>
-          <option>Redcap-like fae marauder, small violent folklore specimen</option>
-          <option>Will-o’-wisp cluster, intelligent marsh-light phenomenon</option>
-          <option>Changeling figure, human-adjacent fae anomaly</option>
-          <option>Brownie-like domestic entity, unseen household inhabitant</option>
-          <option>Nixie-like river fae, reflective-water observer</option>
-          <option>Fairy ring custodians, small figures at meadow edge</option>
-
-          <!-- Lovecraftian / cosmic -->
-          <option>Deep-sea Lovecraftian humanoid entity, amphibious coastal cryptid</option>
-          <option>Cephalopod-limbed elder organism, intertidal anomaly</option>
-          <option>Offshore leviathan silhouette, abyssal surface disturbance</option>
-          <option>Cyclopean titan presence, ancient terrestrial anomaly</option>
-          <option>Living shadow mass with tendrils, light-absorbing silhouette anomaly</option>
-          <option>Geometric emissary entity, impossible-angle biological mimic</option>
-          <option>Mask-faced watcher, ceremonial observer phenomenon</option>
-          <option>Cathedral-sized deep creature, fog-horizon megafauna anomaly</option>
-
-          <!-- Yokai-adjacent / mythic horror vibes -->
-          <option>Long-necked marsh apparition, distant reedline anomaly</option>
-          <option>Fox-spirit mimic, animal-human liminal figure</option>
-          <option>River kappa-adjacent amphibian humanoid, stonebank observer</option>
-          <option>Umbrella-shadow yokai-adjacent presence, corridor anomaly</option>
-          <option>Faceless figure in ceremonial cloth, roadside observer phenomenon</option>
-
-          <!-- Classic myth creatures (grounded) -->
-          <option>Horned giant humanoid, hillside watcher specimen</option>
-          <option>Harpy-like scavenger entity, cliffside roost anomaly</option>
-          <option>Minotaur-adjacent bull-headed humanoid, ruin-bound specimen</option>
-          <option>Sea-siren entity, coastal rock observer</option>
-          <option>Old-world dragon-like silhouette, distant ridge anomaly (restrained, documentary)</option>
-
-          <!-- “Weird biology” -->
-          <option>Insectoid tall-thin entity, jointed-limbed woodland specimen</option>
-          <option>Bone-white quadruped with too many joints, forest-floor anomaly</option>
-          <option>Mirror-sheen amphibious organism, tidal-flat specimen</option>
-          <option>Fungal humanoid, spore-textured forest entity</option>
-          <option>Porcelain-smooth humanoid with subtle seams, manufactured-anomaly presence</option>
-        </select>
+        <div>
+          <label>Location / Setting</label>
+          <select id="location">
+            <option>mist-covered Blue Ridge forest clearing with damp leaf litter</option>
+            <option>dark Atlantic tide pools on a rocky New England shoreline</option>
+            <option>fog-choked lighthouse approach road, sea spray on asphalt</option>
+            <option>abandoned industrial waterfront with rusted bridges and cranes</option>
+            <option>empty motel corridor, buzzing fluorescents, carpet pattern repeating</option>
+            <option>closed shopping mall atrium, skylight rain, abandoned kiosk</option>
+            <option>moonlit bog with peat pools and low hovering fog</option>
+            <option>quiet mountain rest stop at night, fluorescent hum, fog beyond</option>
+          </select>
+        </div>
       </div>
 
-      <div>
-        <label>Location / Setting</label>
-        <select id="location">
-          <!-- Appalachia / forests -->
-          <option>mist-covered Blue Ridge forest clearing with damp leaf litter</option>
-          <option>high Appalachian ridgeline overlook with valley fog below</option>
-          <option>hemlock ravine with creek water and mossed boulders</option>
-          <option>abandoned logging road deep in mountain forest</option>
-          <option>old cemetery at treeline, collapsing headstones, fog pockets</option>
-          <option>fire tower platform ruins above a sea of mist</option>
-          <option>coal country hillside with abandoned tipple structure</option>
+      <div class="row3">
+        <div>
+          <label>Behavior</label>
+          <select id="behavior">
+            <option>clearly visible and dominant in frame, mid-ground focus</option>
+            <option>standing motionless, clearly visible, dominant subject</option>
+            <option>slowly emerging from fog, clearly visible, dominant subject</option>
+            <option>turning its head toward camera, clearly visible, dominant subject</option>
+          </select>
+        </div>
 
-          <!-- Coastal / maritime -->
-          <option>dark Atlantic tide pools on a rocky New England shoreline</option>
-          <option>storm-beaten pier with rusted pilings and black water below</option>
-          <option>salt marsh flats at low tide, reeds moving in wind</option>
-          <option>fog-choked lighthouse approach road, sea spray on asphalt</option>
-          <option>shingle beach with kelp wrack and gray surf</option>
-          <option>harbor breakwater at night, distant buoy lights</option>
+        <div>
+          <label>Camera / Composition</label>
+          <select id="camera">
+            <option>documentary camera centered on the entity, subject occupies central third of frame, background secondary</option>
+            <option>camera locked on subject, slow ceremonial zoom centered on entity</option>
+            <option>static observational framing, subject centered, horizon secondary</option>
+          </select>
+        </div>
 
-          <!-- Desert / plains -->
-          <option>wind-carved desert plateau with heat haze on the horizon</option>
-          <option>abandoned roadside gas station in a sun-bleached plain</option>
-          <option>dry lakebed with cracked mud and exposed pylons</option>
-          <option>badlands ridge with eroded stone ribs</option>
-
-          <!-- Snow / cold -->
-          <option>wind-blown Arctic sea ice with cracks and drifting snow</option>
-          <option>frozen lake shoreline, cattails trapped in ice</option>
-          <option>mountain pass in heavy snow squall, visibility collapsing</option>
-          <option>boreal treeline in whiteout fog, black spruce silhouettes</option>
-
-          <!-- Industrial / urban uncanny -->
-          <option>abandoned industrial waterfront with rusted bridges and cranes</option>
-          <option>quiet rail yard at dusk, derelict cars, distant haze</option>
-          <option>empty textile mill corridor, broken windows, dust motes</option>
-          <option>storm drain mouth beneath an overpass, shallow black water</option>
-          <option>closed amusement park midway, faded paint, silent rides</option>
-          <option>shipbreaking yard with stacked hull plates, coastal fog</option>
-
-          <!-- Liminal interiors -->
-          <option>empty motel corridor, buzzing fluorescents, carpet pattern repeating</option>
-          <option>closed shopping mall atrium, skylight rain, abandoned kiosk</option>
-          <option>out-of-service subway platform, damp tiles, distant rumble</option>
-          <option>small-town TV studio set, curtains, unmarked door backstage</option>
-          <option>library stacks after hours, paging system silence, dust in light shafts</option>
-          <option>radio tower maintenance room, humming equipment, fogged windows</option>
-
-          <!-- Fae-friendly -->
-          <option>fern-choked hollow with standing stones and cold mist</option>
-          <option>old-growth grove with unnatural stillness and filtered light</option>
-          <option>moonlit bog with peat pools and low hovering fog</option>
-          <option>meadow edge with a fairy ring, grass pressed into a circle</option>
-
-          <!-- Weird places / “wrongness” -->
-          <option>quiet mountain rest stop at night, fluorescent hum, fog beyond</option>
-          <option>abandoned roadside attraction, faded signage, empty parking lot</option>
-          <option>forgotten service tunnel entrance beneath a bridge</option>
-          <option>reservoir spillway stairs descending into darkness</option>
-          <option>lonely rural intersection with a blinking yellow light in fog</option>
-          <option>field of telephone poles, wires singing in wind</option>
-        </select>
+        <div>
+          <label>Transmission Type</label>
+          <select id="transmission">
+            <option>recorded in a restricted 1970s lodge transmission</option>
+            <option>recorded in a classified lodge field report segment</option>
+            <option>recorded in a lodge containment briefing</option>
+            <option>recorded in a restricted maritime anomaly broadcast</option>
+          </select>
+        </div>
       </div>
+
+      <div class="row3">
+        <div>
+          <label>Year</label>
+          <select id="year">
+            <option>1971</option><option>1972</option><option>1973</option><option selected>1974</option>
+            <option>1975</option><option>1976</option><option>1977</option><option>1978</option><option>1979</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Aspect Ratio</label>
+          <input id="ar" value="32:9" />
+        </div>
+
+        <div>
+          <label>Chaos</label>
+          <select id="chaos">
+            <option>6</option><option selected>9</option><option>11</option><option>13</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label>Extra Notes (optional)</label>
+          <input id="notes" placeholder="e.g., timecode burn-in, lodge watermark, clear silhouette" />
+        </div>
+
+        <div>
+          <label>Subject Lock Strength</label>
+          <select id="lock">
+            <option value="normal" selected>Normal</option>
+            <option value="strong">Strong (repeat subject at start)</option>
+            <option value="max">Max (repeat + extra centering)</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Generated Prompt</label>
+      <textarea id="output" class="mono" readonly></textarea>
+
+      <div class="actions">
+        <button id="copy">Copy</button>
+        <button id="randomize">Randomize</button>
+      </div>
+
+      <div class="small">Once this is styling correctly, we’ll re-add the huge dropdown library again.</div>
     </div>
-
-    <div class="row3">
-      <div>
-        <label>Behavior / Moment (keeps creature “present”)</label>
-        <select id="behavior">
-          <option>clearly visible and dominant in frame, mid-ground focus</option>
-          <option>standing motionless, clearly visible, dominant subject</option>
-          <option>slowly emerging from fog, clearly visible, dominant subject</option>
-          <option>turning its head toward camera, clearly visible, dominant subject</option>
-          <option>crossing the frame at a measured pace, clearly visible, dominant subject</option>
-          <option>partially obscured but unmistakable silhouette, dominant subject</option>
-          <option>observed at close documentary distance, dominant subject</option>
-          <option>pausing at the edge of treeline, dominant subject</option>
-          <option>caught mid-step, dominant subject with clear anatomy</option>
-          <option>kneeling or crouched, dominant subject, clear outline</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Camera / Composition (V7-friendly)</label>
-        <select id="camera">
-          <option>documentary camera centered on the entity, subject occupies central third of frame, background secondary</option>
-          <option>camera locked on subject, slow ceremonial zoom centered on entity</option>
-          <option>static observational framing, subject centered, horizon secondary</option>
-          <option>handheld field-footage steadiness, subject centered, slight drift</option>
-          <option>telephoto field lens feel, subject compressed against background, still dominant</option>
-          <option>wide field lens feel, subject still dominant, environmental context minimal</option>
-          <option>tracking shot feel, camera follows subject, background secondary</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Transmission Type</label>
-        <select id="transmission">
-          <option>recorded in a restricted 1970s lodge transmission</option>
-          <option>recorded in a classified lodge field report segment</option>
-          <option>recorded in a lodge containment briefing</option>
-          <option>recorded in a restricted maritime anomaly broadcast</option>
-          <option>recorded in a regional public-access paranormal special later suppressed</option>
-          <option>recorded in an institutional folklore survey broadcast</option>
-          <option>recorded in a declassified incident reel with missing frames</option>
-          <option>recorded in a quiet educational broadcast with unsettling undertone</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="grid" style="margin-top:14px;">
-      <div>
-        <label>Lighting / Weather</label>
-        <select id="lighting">
-          <option>natural overcast lighting only, cold mist swallowing distance</option>
-          <option>early dawn haze, soft diffused light, low contrast</option>
-          <option>late dusk gloom, minimal ambient light, no dramatic spotlighting</option>
-          <option>storm-thick haze, flat sky, rain implied</option>
-          <option>winter daylight, pale exposure, soft highlights</option>
-          <option>moonlit ambient light, restrained, documentary realism</option>
-          <option>coastal fog bank rolling in, horizon nearly erased</option>
-          <option>heat haze and glare, sun-bleached tones, flat contrast</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Color Palette / Grade</label>
-        <select id="palette">
-          <option>desaturated earth tones, muted greens and slate blues</option>
-          <option>washed-out broadcast color, faded contrast, matte look</option>
-          <option>cold steel blues and weathered sand tones</option>
-          <option>sepia-leaning film fade, subdued warmth</option>
-          <option>low-saturation autumn palette, damp browns and moss greens</option>
-          <option>gray-blue winter grade, minimal color information</option>
-          <option>monochrome black-and-white broadcast grade, fog-heavy</option>
-          <option>underexposed night broadcast grade, muted highlights</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row3" style="margin-top:14px;">
-      <div>
-        <label>Analog Medium</label>
-        <select id="medium">
-          <option>shot on degraded 16mm film and transferred to unstable analog VHS</option>
-          <option>shot on 16mm archival film scan with mild gate weave</option>
-          <option>shot on early video broadcast tape with soft resolution</option>
-          <option>shot on grainy 8mm field film, then re-recorded to VHS</option>
-          <option>shot on 16mm newsreel stock, aged scan</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Artifacts / Degradation</label>
-        <select id="artifacts">
-          <option>subtle analog film grain, faint scan lines, minor tracking distortion</option>
-          <option>subtle analog film grain, faint scan lines, VHS tape dropout artifacts</option>
-          <option>soft lens bloom, slight chromatic aberration, low-signal flicker</option>
-          <option>timecode burn-in, minimal classification lower-third text, lodge insignia watermark</option>
-          <option>frame warping, ghosted double exposure traces, intermittent static bursts</option>
-          <option>light film burn in corner, dust specks, gate weave</option>
-        </select>
-      </div>
-
-      <div>
-        <label>“Wrongness” Modifier (optional)</label>
-        <select id="modifier">
-          <option value="">(none)</option>
-          <option>as if the environment is subtly wrong, spatial continuity failing at the edges</option>
-          <option>with fog behaving unnaturally, pooling in geometric shapes</option>
-          <option>with distant insects silent, air electrically dense</option>
-          <option>with faint ceremonial symbols barely visible on surfaces</option>
-          <option>with a low-frequency hum implied, institutional calm</option>
-          <option>with an unmarked door standing alone in the landscape</option>
-          <option>with a partially-buried monument that doesn’t match local history</option>
-          <option>with a brief glimpse of movement in the far periphery</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row3" style="margin-top:14px;">
-      <div>
-        <label>Year</label>
-        <select id="year">
-          <option>1971</option><option>1972</option><option>1973</option><option selected>1974</option>
-          <option>1975</option><option>1976</option><option>1977</option><option>1978</option><option>1979</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Aspect Ratio</label>
-        <input id="ar" value="32:9" />
-      </div>
-
-      <div>
-        <label>Chaos</label>
-        <select id="chaos">
-          <option>6</option>
-          <option selected>9</option>
-          <option>11</option>
-          <option>13</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="grid" style="margin-top:14px;">
-      <div>
-        <label>Extra Notes (optional)</label>
-        <input id="notes" placeholder="e.g., clear silhouette against fog, subject centered, no epic lighting" />
-        <div class="small">Tip: If subjects keep shrinking, add “subject occupies central third of frame” or repeat the creature phrase once in notes.</div>
-      </div>
-
-      <div>
-        <label>Subject Lock Strength</label>
-        <select id="lock">
-          <option value="normal" selected>Normal (good balance)</option>
-          <option value="strong">Strong (repeat subject at start)</option>
-          <option value="max">Max (repeat + extra centering language)</option>
-        </select>
-        <div class="small">This helps prevent “only landscape” results in ultra-wide 32:9.</div>
-      </div>
-    </div>
-
-    <label style="margin-top:14px;">Generated Prompt</label>
-    <textarea id="output" class="mono" readonly></textarea>
-
-    <div class="actions">
-      <button id="copy">Copy</button>
-      <button id="randomize">Randomize</button>
-      <button id="randomCreature">Random Creature</button>
-      <button id="randomLocation">Random Location</button>
-      <button id="reset">Reset</button>
-    </div>
-    <div class="small">Open this file in a browser. To publish it, host on GitHub Pages / Netlify / Vercel.</div>
   </div>
 
   <script>
@@ -571,18 +356,12 @@
       const behavior = el("behavior").value;
       const camera = el("camera").value;
       const transmission = el("transmission").value;
-      const lighting = el("lighting").value;
-      const palette = el("palette").value;
-      const medium = el("medium").value;
-      const artifacts = el("artifacts").value;
-      const modifier = el("modifier").value;
       const year = el("year").value;
       const ar = (el("ar").value.trim() || "32:9");
       const chaos = el("chaos").value;
       const notes = el("notes").value.trim();
       const lock = el("lock").value;
 
-      // Subject lock behavior:
       let subjectLead = creature;
       let lockTail = "";
 
@@ -594,13 +373,13 @@
       }
 
       const prompt =
-`${subjectLead}, ${behavior}, standing in ${location}${modifier ? ", " + modifier : ""}, ${camera}, ${transmission} (${year}), ${medium}, ${palette}, ${lighting}, ${artifacts}, biological realism, matte textures, solemn institutional broadcast tone, archival occult documentation${lockTail}${notes ? ", " + notes : ""} --ar ${ar} --v 7 --style raw --chaos ${chaos}`;
+`${subjectLead}, ${behavior}, standing in ${location}, ${camera}, ${transmission} (${year}), shot on degraded 16mm film and transferred to unstable analog VHS, desaturated natural palette, soft lens bloom, subtle analog film grain, faint scan lines, minor tracking distortion, natural lighting only, biological realism, matte textures, solemn institutional broadcast tone, archival occult documentation${lockTail}${notes ? ", " + notes : ""} --ar ${ar} --v 7 --style raw --chaos ${chaos}`;
 
       el("output").value = prompt;
     };
 
-    const hook = ["creature","location","behavior","camera","transmission","lighting","palette","medium","artifacts","modifier","year","ar","chaos","notes","lock"];
-    hook.forEach(id => el(id).addEventListener("input", build));
+    ["creature","location","behavior","camera","transmission","year","ar","chaos","notes","lock"]
+      .forEach(id => el(id).addEventListener("input", build));
 
     el("copy").addEventListener("click", async () => {
       await navigator.clipboard.writeText(el("output").value);
@@ -609,21 +388,7 @@
     });
 
     el("randomize").addEventListener("click", () => {
-      ["creature","location","behavior","camera","transmission","lighting","palette","medium","artifacts","modifier","year","chaos"].forEach(pickRandom);
-      build();
-    });
-
-    el("randomCreature").addEventListener("click", () => { pickRandom("creature"); build(); });
-    el("randomLocation").addEventListener("click", () => { pickRandom("location"); build(); });
-
-    el("reset").addEventListener("click", () => {
-      el("ar").value = "32:9";
-      el("chaos").value = "9";
-      el("year").value = "1974";
-      el("lock").value = "normal";
-      el("notes").value = "";
-      // Put selects back to first items
-      ["creature","location","behavior","camera","transmission","lighting","palette","medium","artifacts","modifier"].forEach(id => el(id).selectedIndex = 0);
+      ["creature","location","behavior","camera","transmission","year","chaos"].forEach(pickRandom);
       build();
     });
 
