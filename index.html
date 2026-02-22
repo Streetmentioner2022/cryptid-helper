@@ -215,6 +215,21 @@
       margin-top: 8px;
       line-height: 1.4;
     }
+  .classbar{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(10,12,16,0.55);
+  margin: 10px 0 8px;
+  font-size: 11px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: rgba(245,246,250,0.75);
+}
   </style>
 </head>
 
@@ -322,7 +337,7 @@
         </div>
 
         <div>
-          <label>Subject Lock Strength</label>
+         <label>Subject Lock Strength</label>
           <select id="lock">
             <option value="normal" selected>Normal</option>
             <option value="strong">Strong (repeat subject at start)</option>
@@ -331,6 +346,11 @@
         </div>
       </div>
 
+      <div class="classbar">
+  <span>CLASSIFIED • FIELD REPORT</span>
+  <span class="mono">ARCHIVE NODE 32</span>
+</div>
+      
       <label>Generated Prompt</label>
       <textarea id="output" class="mono" readonly></textarea>
 
