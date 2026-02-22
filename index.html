@@ -274,6 +274,21 @@ button:active{ transform: translateY(0px); }
   text-transform: uppercase;
   box-shadow: 0 2px 12px rgba(0,0,0,0.6);
 }
+    /* Giant background watermark */
+body::after{
+  content: "NAFO ARCHIVE";
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-25deg);
+  font-size: 140px;
+  font-weight: 900;
+  letter-spacing: 12px;
+  color: rgba(0,255,150,0.05);
+  pointer-events: none;
+  z-index: 0;
+  white-space: nowrap;
+}
   </style>
 </head>
 
