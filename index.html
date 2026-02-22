@@ -315,8 +315,16 @@ body::after{
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), rgba(0,0,0,0) 55%);
 
   mix-blend-mode: screen;
-  opacity: 0.65;
-}  
+  opacity: 0.80;
+} 
+    @keyframes crtFlicker{
+  0%, 100% { opacity: 0.60; }
+  50%      { opacity: 0.72; }
+}
+
+.crt{
+  animation: crtFlicker 5s infinite;
+}
   </style>
 </head>
 
