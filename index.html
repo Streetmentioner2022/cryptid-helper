@@ -506,6 +506,7 @@ Status: Officially Unacknowledged</p>
 
     const build = () => {
       const creature = el("creature").value;
+      const cls = el("class").value;
       const location = el("location").value;
       const behavior = el("behavior").value;
       const camera = el("camera").value;
@@ -516,7 +517,7 @@ Status: Officially Unacknowledged</p>
       const notes = el("notes").value.trim();
       const lock = el("lock").value;
 
-      let subjectLead = creature;
+      let subjectLead = `${creature} (${cls})`;
       let lockTail = "";
 
       if (lock === "strong") {
