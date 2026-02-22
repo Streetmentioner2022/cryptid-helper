@@ -133,7 +133,19 @@
   padding: 16px;
   backdrop-filter: blur(10px);
 }
+.card{
+  position: relative;
+  overflow: hidden;
+}
 
+.card::before{
+  content:"";
+  position:absolute;
+  inset: -2px;
+  background: radial-gradient(600px 180px at 20% 0%, rgba(165,220,255,0.18), transparent 60%),
+              radial-gradient(520px 180px at 85% 20%, rgba(180,140,255,0.14), transparent 55%);
+  pointer-events:none;
+}
     .grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
