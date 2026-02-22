@@ -6,11 +6,7 @@
   <title>National Anomaly Field Office</title>
 
   <style>
-    /* =========================
-       1) COLORS / VARIABLES
-       ========================= */
     :root{
-      --bg: #07080a;
       --panel: rgba(18, 20, 24, 0.78);
       --panel2: rgba(14, 16, 20, 0.62);
       --border: rgba(255,255,255,0.12);
@@ -37,10 +33,6 @@
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       letter-spacing: 0.2px;
     }
-
-    /* =========================
-       2) OVERLAYS (scanlines + grain)
-       ========================= */
 
     /* scanlines */
     body::before{
@@ -75,10 +67,6 @@
       z-index: 4;
     }
 
-    /* =========================
-       3) TOP STRIP / CRT / WATERMARK
-       ========================= */
-
     .topstrip{
       width: 100%;
       background: linear-gradient(90deg, #3a0000, #6a0000, #3a0000);
@@ -108,7 +96,6 @@
       opacity: 0.80;
     }
 
-    /* watermark behind the UI */
     .watermark{
       position: fixed;
       top: 50%;
@@ -123,16 +110,12 @@
       white-space: nowrap;
     }
 
-    /* =========================
-       4) LAYOUT / UI
-       ========================= */
-
     .wrap{
       max-width: 1120px;
       margin: 0 auto;
       padding: 22px 18px 70px;
       position: relative;
-      z-index: 10; /* keep UI above watermark/CRT */
+      z-index: 10;
     }
 
     header{
@@ -206,14 +189,6 @@
       margin-bottom: 14px;
     }
     @media (max-width: 900px){ .row3{ grid-template-columns: 1fr; } }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
 
     label{
       display:block;
@@ -300,14 +275,10 @@
 </head>
 
 <body>
-  <!-- TOP STRIP -->
   <div class="topstrip">⚠ CLASSIFIED • NATIONAL ANOMALY FIELD OFFICE • EYES ONLY • LEVEL 4 CLEARANCE REQUIRED</div>
-
-  <!-- CRT + WATERMARK LAYERS -->
   <div class="crt"></div>
   <div class="watermark">NAFO ARCHIVE</div>
 
-  <!-- MAIN UI -->
   <div class="wrap">
     <header>
       <div class="titleblock">
@@ -319,91 +290,82 @@ Status: Officially Unacknowledged</p>
     </header>
 
     <div class="card">
-
-      <!-- CREATURE + CLASSIFICATION + LOCATION -->
+      <!-- NEW CLEAN HIERARCHY: Classification → Creature → Location -->
       <div class="row3">
         <div>
-          <label>Creature / Entity</label>
-          <select id="creature">
-            <option>Wendigo</option>
-            <option>Mothman</option>
-            <option>Kelpie</option>
-            <option>Fae Sentinel</option>
-            <option>Elder Deep One</option>
-            <option>Leviathan</option>
-            <option>Shadow Entity</option>
-            <option>Geometric Emissary</option>
-            <option>Fungal Humanoid</option>
-            <option>Marsh Revenant</option>
-            <option>Forest Watcher</option>
-            <option>Coastal Apparition</option>
-            <option>Unknown Bipedal Organism</option>
-            <option>Antlered Figure</option>
-            <option>Unidentified Winged Entity</option>
-          </select>
+          <label>Classification</label>
+          <select id="classification"></select>
         </div>
 
         <div>
-          <label>Classification</label>
-          <select id="classification">
-            <option>Cryptid</option>
-            <option>Fae</option>
-            <option>Maritime Entity</option>
-            <option>Interdimensional</option>
-            <option>Occult Construct</option>
-            <option>Biological Anomaly</option>
-            <option>Environmental Mimic</option>
-            <option>Unknown</option>
-          </select>
+          <label>Creature / Entity</label>
+          <select id="creature"></select>
+          <div class="small" id="creatureHint"></div>
         </div>
 
         <div>
           <label>Location / Setting</label>
           <select id="location">
-            <option>mist-covered Blue Ridge forest clearing with damp leaf litter</option>
-            <option>dark Atlantic tide pools on a rocky New England shoreline</option>
-            <option>fog-choked lighthouse approach road, sea spray on asphalt</option>
-            <option>abandoned industrial waterfront with rusted bridges and cranes</option>
-            <option>empty motel corridor, buzzing fluorescents, carpet pattern repeating</option>
-            <option>closed shopping mall atrium, skylight rain, abandoned kiosk</option>
-            <option>moonlit bog with peat pools and low hovering fog</option>
-            <option>quiet mountain rest stop at night, fluorescent hum, fog beyond</option>
+            <option>mist-covered Blue Ridge forest clearing</option>
+            <option>dark Atlantic tide pools on a rocky shoreline</option>
+            <option>fog-choked lighthouse approach road</option>
+            <option>abandoned industrial waterfront</option>
+            <option>empty motel corridor under fluorescents</option>
+            <option>closed shopping mall atrium, rain on skylight</option>
+            <option>moonlit bog with peat pools</option>
+            <option>quiet mountain rest stop at night</option>
           </select>
         </div>
       </div>
 
+      <!-- Atmosphere comes before camera stuff -->
       <div class="row3">
+        <div>
+          <label>Atmosphere</label>
+          <select id="atmosphere">
+            <option>heavy fog</option>
+            <option>steady rain</option>
+            <option>thunderstorm in the distance</option>
+            <option>coastal mist and salt spray</option>
+            <option>overcast twilight</option>
+            <option>moonlit night</option>
+            <option>snow flurries</option>
+            <option>fluorescent hum</option>
+          </select>
+        </div>
+
         <div>
           <label>Behavior</label>
           <select id="behavior">
-            <option>clearly visible and dominant in frame, mid-ground focus</option>
-            <option>standing motionless, clearly visible, dominant subject</option>
-            <option>slowly emerging from fog, clearly visible, dominant subject</option>
-            <option>turning its head toward camera, clearly visible, dominant subject</option>
+            <option>standing motionless</option>
+            <option>slowly emerging</option>
+            <option>turning toward camera</option>
+            <option>passing through frame</option>
           </select>
         </div>
 
         <div>
           <label>Camera / Composition</label>
           <select id="camera">
-            <option>documentary camera centered on the entity, subject occupies central third of frame, background secondary</option>
-            <option>camera locked on subject, slow ceremonial zoom centered on entity</option>
-            <option>static observational framing, subject centered, horizon secondary</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Transmission Type</label>
-          <select id="transmission">
-            <option>recorded in a restricted 1970s lodge transmission</option>
-            <option>recorded in a classified lodge field report segment</option>
-            <option>recorded in a lodge containment briefing</option>
-            <option>recorded in a restricted maritime anomaly broadcast</option>
+            <option>static documentary framing, centered subject</option>
+            <option>handheld field footage, imperfect focus</option>
+            <option>telephoto compression, distant observation</option>
+            <option>wide shot, subject small against environment</option>
           </select>
         </div>
       </div>
 
       <div class="row3">
+        <div>
+          <label>Transmission Type</label>
+          <select id="transmission">
+            <option>classified field report segment</option>
+            <option>containment briefing excerpt</option>
+            <option>restricted archival broadcast</option>
+            <option>intercepted maritime anomaly transmission</option>
+          </select>
+        </div>
+
         <div>
           <label>Year</label>
           <select id="year">
@@ -416,27 +378,27 @@ Status: Officially Unacknowledged</p>
           <label>Aspect Ratio</label>
           <input id="ar" value="32:9" />
         </div>
+      </div>
 
+      <div class="row3">
         <div>
           <label>Chaos</label>
           <select id="chaos">
             <option>6</option><option selected>9</option><option>11</option><option>13</option>
           </select>
         </div>
-      </div>
 
-      <div class="grid">
         <div>
           <label>Extra Notes (optional)</label>
-          <input id="notes" placeholder="e.g., timecode burn-in, watermark, clear silhouette" />
+          <input id="notes" placeholder="e.g., timecode burn-in, station watermark, clear silhouette" />
         </div>
 
         <div>
-          <label>Subject Lock Strength</label>
+          <label>Subject Lock</label>
           <select id="lock">
             <option value="normal" selected>Normal</option>
-            <option value="strong">Strong (repeat subject at start)</option>
-            <option value="max">Max (repeat + extra centering)</option>
+            <option value="strong">Strong</option>
+            <option value="max">Max</option>
           </select>
         </div>
       </div>
@@ -454,25 +416,112 @@ Status: Officially Unacknowledged</p>
         <button id="randomize">Randomize</button>
       </div>
 
-      <div class="small">Now that the structure is clean again, we can safely expand dropdown lists without chaos.</div>
+      <div class="small">Classification changes the Creature list automatically.</div>
     </div>
   </div>
 
   <script>
-    /* =========================
-       5) JAVASCRIPT (the brain)
-       ========================= */
+    // --------- ELI5 EXPLANATION ----------
+    // We have a "map" that says:
+    // If you pick Cryptid -> show cryptid creatures.
+    // If you pick Fae -> show fae creatures.
+    // Then we rebuild the prompt every time you change something.
+
     const el = (id) => document.getElementById(id);
 
-    const pickRandom = (selectId) => {
-      const s = el(selectId);
-      s.selectedIndex = Math.floor(Math.random() * s.options.length);
+    const CREATURES_BY_CLASS = {
+      "Cryptid": [
+        "Jersey Devil",
+        "Mothman",
+        "Bigfoot",
+        "Chupacabra",
+        "Flatwoods Monster",
+        "Dogman",
+        "Skunk Ape",
+        "Thunderbird"
+      ],
+      "Fae": [
+        "The Wild Hunt",
+        "Leprechaun",
+        "Banshee",
+        "Redcap",
+        "Selkie",
+        "Púca",
+        "Brownie",
+        "Dullahan"
+      ],
+      "Maritime Entity": [
+        "Kelpie",
+        "Kraken",
+        "Sea Serpent",
+        "Lighthouse Wraith",
+        "Abyssal Leviathan",
+        "Sargassum Thing"
+      ],
+      "Interdimensional": [
+        "Geometric Emissary",
+        "Mirror Visitor",
+        "Doorway Figure",
+        "Angle-Walker"
+      ],
+      "Occult Construct": [
+        "Sigil-Made Sentinel",
+        "Wax Effigy",
+        "Bone Golem",
+        "Paper Familiar"
+      ],
+      "Biological Anomaly": [
+        "Fungal Humanoid",
+        "Spore Host",
+        "Chitinous Biped",
+        "Blind Burrower"
+      ],
+      "Environmental Mimic": [
+        "Living Shadow",
+        "Fog Imitator",
+        "Tree-Line Watcher",
+        "Static Shambler"
+      ],
+      "Unknown": [
+        "Unidentified Bipedal Organism",
+        "Unidentified Winged Entity",
+        "Unclassified Presence",
+        "Unknown Subject"
+      ]
     };
 
-    const build = () => {
-      const creature = el("creature").value;
+    function fillSelect(selectEl, options, keepFirst = false) {
+      const current = selectEl.value;
+      selectEl.innerHTML = "";
+      options.forEach((txt) => {
+        const opt = document.createElement("option");
+        opt.textContent = txt;
+        selectEl.appendChild(opt);
+      });
+
+      // try to keep what you had selected if it still exists
+      if (keepFirst) return;
+      const stillExists = options.includes(current);
+      if (stillExists) selectEl.value = current;
+    }
+
+    function onClassificationChange() {
       const cls = el("classification").value;
+      const list = CREATURES_BY_CLASS[cls] || CREATURES_BY_CLASS["Unknown"];
+      fillSelect(el("creature"), list);
+
+      el("creatureHint").textContent = (cls === "Unknown")
+        ? "Classification is Unknown: broad placeholder subjects."
+        : `Loaded ${list.length} ${cls} subjects.`;
+
+      build();
+    }
+
+    function build() {
+      const cls = el("classification").value;
+      const creature = el("creature").value;
       const location = el("location").value;
+      const atmosphere = el("atmosphere").value;
       const behavior = el("behavior").value;
       const camera = el("camera").value;
       const transmission = el("transmission").value;
@@ -482,30 +531,41 @@ Status: Officially Unacknowledged</p>
       const notes = el("notes").value.trim();
       const lock = el("lock").value;
 
-      let subjectLead = `${creature} (${cls})`;
+      let subjectLead = `${cls}: ${creature}`;
       let lockTail = "";
 
       if (lock === "strong") {
         subjectLead = `${subjectLead}, ${subjectLead}`;
       } else if (lock === "max") {
         subjectLead = `${subjectLead}, ${subjectLead}`;
-        lockTail = ", documentary camera locked on subject, clear silhouette definition, subject centered";
+        lockTail = ", camera locked on subject, clear silhouette, subject centered";
       }
 
       const prompt =
-`${subjectLead}, ${behavior}, standing in ${location}, ${camera}, ${transmission} (${year}), shot on degraded 16mm film and transferred to unstable analog VHS, desaturated natural palette, soft lens bloom, subtle analog film grain, faint scan lines, minor tracking distortion, natural lighting only, biological realism, matte textures, solemn institutional broadcast tone, archival occult documentation${lockTail}${notes ? ", " + notes : ""} --ar ${ar} --v 7 --style raw --chaos ${chaos}`;
+`${subjectLead}, ${behavior}, standing in ${location}, atmosphere: ${atmosphere}, ${camera}, ${transmission} (${year}), shot on degraded 16mm film transferred to unstable analog VHS, desaturated palette, soft bloom, film grain, faint scan lines, minor tracking distortion, natural lighting only, biological realism, matte textures, solemn institutional broadcast tone, archival anomaly documentation${lockTail}${notes ? ", " + notes : ""} --ar ${ar} --v 7 --style raw --chaos ${chaos}`;
 
       el("output").value = prompt;
-    };
+    }
 
-    const bind = (id) => {
-      const node = el(id);
-      node.addEventListener("input", build);
-      node.addEventListener("change", build);
-    };
+    function pickRandom(id) {
+      const s = el(id);
+      s.selectedIndex = Math.floor(Math.random() * s.options.length);
+    }
 
-    ["creature","classification","location","behavior","camera","transmission","year","ar","chaos","notes","lock"]
-      .forEach(bind);
+    // ---- init ----
+    const classList = Object.keys(CREATURES_BY_CLASS);
+    fillSelect(el("classification"), classList);
+    onClassificationChange(); // fills creature list + builds prompt
+
+    // rebuild prompt when anything changes
+    ["creature","location","atmosphere","behavior","camera","transmission","year","ar","chaos","notes","lock"]
+      .forEach(id => {
+        el(id).addEventListener("input", build);
+        el(id).addEventListener("change", build);
+      });
+
+    // classification is special: it rebuilds creature options
+    el("classification").addEventListener("change", onClassificationChange);
 
     el("copy").addEventListener("click", async () => {
       await navigator.clipboard.writeText(el("output").value);
@@ -514,11 +574,12 @@ Status: Officially Unacknowledged</p>
     });
 
     el("randomize").addEventListener("click", () => {
-      ["creature","classification","location","behavior","camera","transmission","year","chaos"].forEach(pickRandom);
+      pickRandom("classification");
+      onClassificationChange(); // refresh creature list for that class
+      pickRandom("creature");
+      ["location","atmosphere","behavior","camera","transmission","year","chaos"].forEach(pickRandom);
       build();
     });
-
-    build();
   </script>
 </body>
 </html>
