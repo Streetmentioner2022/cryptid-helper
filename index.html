@@ -145,7 +145,7 @@
       text-transform: uppercase;
     }
 
-    .select, .textarea{
+    .select, .textarea, .input{
       width: 100%;
       border-radius: 12px;
       border: 1px solid var(--border);
@@ -154,7 +154,7 @@
       color: var(--text);
       outline: none;
     }
-    .select:focus, .textarea:focus{
+    .select:focus, .textarea:focus, .input:focus{
       border-color: rgba(255,255,255,.22);
       box-shadow: 0 0 0 3px rgba(255,255,255,.05);
     }
@@ -187,6 +187,29 @@
       letter-spacing: .08em;
       text-transform: uppercase;
     }
+
+    /* checkbox row */
+    .checkrow{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.25);
+      padding: 10px 12px;
+      border-radius: 12px;
+    }
+    .checkrow input{ transform: scale(1.15); }
+    .checkrow .labeltext{
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      font-size: 12px;
+      opacity: .9;
+    }
+    .checkrow .sub{
+      margin-left: auto;
+      font-size: 12px;
+      opacity: .7;
+    }
   </style>
 </head>
 
@@ -199,18 +222,16 @@
 
     <div class="titleblock">
       <h1 class="mono">National Anomaly Field Office</h1>
-      <p class="mono">NAFO Style Prompt Generator • officially denied</p>
+      <p class="mono">Style Prompt Generator • officially denied</p>
     </div>
 
     <section class="panel" id="prompt-generator">
       <h2 class="panel-title mono">Prompt Composer</h2>
-      <p class="panel-subtitle mono">Classification → Creature → (Variant) → Location → Atmosphere → Capture Type</p>
+      <p class="panel-subtitle mono">Classification → Creature → (Variant) → Location → Atmosphere → Capture Type → MJ Params</p>
 
       <div class="grid">
-        <!-- Left: Controls -->
         <div class="controls" id="controls"></div>
 
-        <!-- Right: Output -->
         <div class="output">
           <label class="label mono" for="finalPrompt">FINAL PROMPT</label>
           <textarea id="finalPrompt" class="textarea mono" rows="12" readonly></textarea>
@@ -231,7 +252,6 @@
 
   <script>
     (() => {
-      // ===== Data model =====
       const DATA = {
         classifications: [
           { value: "cryptid", label: "Cryptid" },
@@ -242,7 +262,6 @@
           { value: "artifact", label: "Anomalous Artifact" }
         ],
 
-        // Creature lists by classification
         creatures: {
           cryptid: [
             { value: "mothman", label: "Mothman" },
@@ -287,7 +306,6 @@
           ]
         },
 
-        // Optional variants only for SOME creatures
         variants: {
           mothman: [
             { value: "red_eyes", label: "Red-Eyed Silhouette" },
@@ -332,32 +350,115 @@
           { value: "handheld_video", label: "Handheld camcorder frame" },
           { value: "thermal", label: "Thermal imaging" },
           { value: "night_vision", label: "Night vision" }
+        ],
+
+        aspectRatios: [
+          { value: "1:1", label: "1:1 (Square)" },
+          { value: "3:2", label: "3:2 (35mm photo)" },
+          { value: "2:3", label: "2:3 (Portrait photo)" },
+          { value: "4:3", label: "4:3 (Old video)" },
+          { value: "16:9", label: "16:9 (Widescreen)" },
+          { value: "9:16", label: "9:16 (Vertical)" },
+          { value: "21:9", label: "21:9 (Ultra-wide)" }
+        ],
+
+        quality: [
+          { value: "1", label: "1 (Default)" },
+          { value: "2", label: "2 (More detail / more GPU)" },
+          { value: "4", label: "4 (Max detail / more GPU)" }
         ]
       };
 
-      // ===== State =====
+      // Found footage + analog folklore base (MJ-useful language)
+      const DEFAULT_STYLE_BASE = [
+        "found footage documentary photograph",
+        "accidental folklore documentation",
+        "imperfect framing, unsteady composition",
+        "natural low light exposure",
+        "no cinematic polish"
+      ];
+
+      // Camera overrides (option 1)
+      const CAMERA_PROFILES = {
+        "35mm": [
+          "found footage documentary photograph",
+          "accidental folklore documentation",
+          "authentic 35mm film photograph",
+          "visible analog film grain",
+          "slight underexposure, imperfect focus",
+          "imperfect framing, candid moment",
+          "no cinematic polish"
+        ],
+        "polaroid": [
+          "found footage documentary photograph",
+          "accidental folklore documentation",
+          "polaroid instant photo",
+          "soft focus, uneven exposure",
+          "chemical artifacts, faded color cast",
+          "handheld snapshot composition",
+          "no cinematic polish"
+        ],
+        "cctv": [
+          "surveillance camera still",
+          "paranormal incident documentation",
+          "fixed wide angle, unflattering perspective",
+          "low resolution, compression artifacts",
+          "timestamped security footage aesthetic",
+          "harsh overhead lighting or dim ambient light"
+        ],
+        "handheld_video": [
+          "found footage camcorder frame",
+          "accidental folklore documentation",
+          "handheld documentary video still",
+          "motion blur, rolling shutter artifacts",
+          "imperfect focus, low light noise",
+          "no cinematic polish"
+        ],
+        "thermal": [
+          "thermal imaging still",
+          "incident documentation",
+          "heat signature contrast, sensor noise",
+          "low detail edges, utilitarian capture",
+          "unsettling ambiguity, non-cinematic"
+        ],
+        "night_vision": [
+          "night vision footage still",
+          "incident documentation",
+          "infrared glow, high noise",
+          "crushed blacks, blown highlights",
+          "unsteady handheld framing",
+          "non-cinematic, purely observational"
+        ]
+      };
+
+      // State (defaults chosen to keep output clean)
       const state = {
         classification: "",
         creature: "",
         variant: "",
         location: "",
         atmosphere: "",
-        camera: ""
+        camera: "",
+        aspectRatio: "16:9",
+        chaos: "10",
+        raw: false,
+        stylize: "100",   // default 100; omitted unless changed
+        weird: "0",       // default 0; omitted unless changed
+        quality: "1"      // default 1; omitted unless changed
       };
 
-      // ===== DOM =====
       const controls = document.getElementById("controls");
       const finalPrompt = document.getElementById("finalPrompt");
       const copyBtn = document.getElementById("copyBtn");
       const resetBtn = document.getElementById("resetBtn");
       const copyHint = document.getElementById("copyHint");
 
-      // ===== helpers =====
       function el(tag, attrs = {}, children = []) {
         const node = document.createElement(tag);
         Object.entries(attrs).forEach(([k, v]) => {
           if (k === "class") node.className = v;
           else if (k === "for") node.htmlFor = v;
+          else if (k === "checked") node.checked = !!v;
           else node.setAttribute(k, v);
         });
         children.forEach(c => node.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
@@ -367,9 +468,7 @@
       function makeSelect({ id, label, options, placeholder = "Select…", value, onChange }) {
         const select = el("select", { id, class: "select mono" });
         select.appendChild(el("option", { value: "" }, [placeholder]));
-        options.forEach(opt => {
-          select.appendChild(el("option", { value: opt.value }, [opt.label]));
-        });
+        options.forEach(opt => select.appendChild(el("option", { value: opt.value }, [opt.label])));
         select.value = value || "";
         select.addEventListener("change", (e) => onChange(e.target.value));
 
@@ -379,16 +478,45 @@
         ]);
       }
 
-      function clearBelow(keys) {
-        keys.forEach(k => state[k] = "");
+      function makeInput({ id, label, value, placeholder = "", onInput, type = "number", min, max, step }) {
+        const attrs = { id, class: "input mono", value: value ?? "", placeholder, type };
+        if (min !== undefined) attrs.min = String(min);
+        if (max !== undefined) attrs.max = String(max);
+        if (step !== undefined) attrs.step = String(step);
+
+        const input = el("input", attrs);
+        input.addEventListener("input", (e) => onInput(e.target.value));
+
+        return el("div", { class: "field" }, [
+          el("label", { class: "label mono", for: id }, [label]),
+          input
+        ]);
       }
+
+      function makeCheckbox({ id, label, checked, hint, onChange }) {
+        const box = el("input", { id, type: "checkbox", checked });
+        box.addEventListener("change", (e) => onChange(e.target.checked));
+
+        return el("div", { class: "checkrow" }, [
+          box,
+          el("div", { class: "labeltext mono" }, [label]),
+          el("div", { class: "sub mono" }, [hint || ""])
+        ]);
+      }
+
+      function clampInt(v, min, max, fallback) {
+        const n = parseInt(v, 10);
+        if (Number.isNaN(n)) return fallback;
+        return Math.min(max, Math.max(min, n));
+      }
+
+      function clearBelow(keys) { keys.forEach(k => state[k] = ""); }
 
       function labelFor(list, value) {
         const item = (list || []).find(x => x.value === value);
         return item ? item.label : "";
       }
 
-      // ===== Render =====
       function renderControls() {
         controls.innerHTML = "";
 
@@ -409,11 +537,10 @@
 
         // 2) Creature
         if (state.classification) {
-          const creatureOptions = DATA.creatures[state.classification] || [];
           controls.appendChild(makeSelect({
             id: "creatureSelect",
             label: "CREATURE",
-            options: creatureOptions,
+            options: DATA.creatures[state.classification] || [],
             placeholder: "Select creature…",
             value: state.creature,
             onChange: (val) => {
@@ -425,7 +552,7 @@
           }));
         }
 
-        // 3) Variant (optional)
+        // 3) Variant
         const variantOptions = state.creature ? (DATA.variants[state.creature] || []) : [];
         if (state.creature && variantOptions.length) {
           controls.appendChild(makeSelect({
@@ -441,42 +568,89 @@
           }));
         }
 
-        // 4) Location, 5) Atmosphere, 6) Camera (only after creature chosen)
         if (state.creature) {
+          // 4) Location
           controls.appendChild(makeSelect({
             id: "locationSelect",
             label: "LOCATION",
             options: DATA.locations,
             placeholder: "Select location…",
             value: state.location,
-            onChange: (val) => {
-              state.location = val;
-              renderPrompt();
-            }
+            onChange: (val) => { state.location = val; renderPrompt(); }
           }));
 
+          // 5) Atmosphere
           controls.appendChild(makeSelect({
             id: "atmosphereSelect",
             label: "ATMOSPHERE",
             options: DATA.atmospheres,
             placeholder: "Select atmosphere…",
             value: state.atmosphere,
-            onChange: (val) => {
-              state.atmosphere = val;
-              renderPrompt();
-            }
+            onChange: (val) => { state.atmosphere = val; renderPrompt(); }
           }));
 
+          // 6) Camera (overrides style)
           controls.appendChild(makeSelect({
             id: "cameraSelect",
-            label: "CAPTURE TYPE",
+            label: "CAPTURE TYPE (OVERRIDES STYLE)",
             options: DATA.cameras,
             placeholder: "Select capture type…",
             value: state.camera,
-            onChange: (val) => {
-              state.camera = val;
-              renderPrompt();
-            }
+            onChange: (val) => { state.camera = val; renderPrompt(); }
+          }));
+
+          // MJ PARAMS
+          controls.appendChild(makeSelect({
+            id: "aspectRatioSelect",
+            label: "ASPECT RATIO (MJ --ar)",
+            options: DATA.aspectRatios,
+            placeholder: "Select aspect ratio…",
+            value: state.aspectRatio,
+            onChange: (val) => { state.aspectRatio = val || "16:9"; renderPrompt(); }
+          }));
+
+          controls.appendChild(makeInput({
+            id: "chaosInput",
+            label: "CHAOS (MJ --chaos 0–100)",
+            value: state.chaos,
+            placeholder: "0–100 (e.g. 10)",
+            min: 0, max: 100, step: 1,
+            onInput: (val) => { state.chaos = String(clampInt(val, 0, 100, 10)); renderPrompt(); }
+          }));
+
+          controls.appendChild(makeCheckbox({
+            id: "rawToggle",
+            label: "RAW MODE",
+            checked: state.raw,
+            hint: "--raw",
+            onChange: (checked) => { state.raw = checked; renderPrompt(); }
+          }));
+
+          controls.appendChild(makeInput({
+            id: "stylizeInput",
+            label: "STYLIZE (MJ --s 0–1000)",
+            value: state.stylize,
+            placeholder: "0–1000 (default 100)",
+            min: 0, max: 1000, step: 1,
+            onInput: (val) => { state.stylize = String(clampInt(val, 0, 1000, 100)); renderPrompt(); }
+          }));
+
+          controls.appendChild(makeInput({
+            id: "weirdInput",
+            label: "WEIRD (MJ --w 0–3000)",
+            value: state.weird,
+            placeholder: "0–3000 (default 0)",
+            min: 0, max: 3000, step: 1,
+            onInput: (val) => { state.weird = String(clampInt(val, 0, 3000, 0)); renderPrompt(); }
+          }));
+
+          controls.appendChild(makeSelect({
+            id: "qualitySelect",
+            label: "QUALITY (MJ --q)",
+            options: DATA.quality,
+            placeholder: "Select quality…",
+            value: state.quality,
+            onChange: (val) => { state.quality = val || "1"; renderPrompt(); }
           }));
         }
       }
@@ -484,35 +658,53 @@
       function renderPrompt() {
         const parts = [];
 
-        // NAFO flavor base
-       parts.push("found footage documentary photograph");
-parts.push("accidental folklore documentation");
-parts.push("authentic analog film grain");
-parts.push("imperfect framing, natural composition");
-parts.push("low light exposure, subtle motion blur");
-        parts.push("classified archive aesthetic, officially denied");
+        // camera overrides base
+        const base = (state.camera && CAMERA_PROFILES[state.camera])
+          ? CAMERA_PROFILES[state.camera]
+          : DEFAULT_STYLE_BASE;
 
-        if (state.classification) {
-          parts.push(`classification: ${labelFor(DATA.classifications, state.classification)}`);
-        }
+        base.forEach(s => parts.push(s));
+
+        if (state.classification) parts.push(`classification: ${labelFor(DATA.classifications, state.classification)}`);
 
         if (state.creature) {
           const cList = DATA.creatures[state.classification] || [];
           parts.push(`subject: ${labelFor(cList, state.creature)}`);
         }
 
-        if (state.variant) {
-          parts.push(`variant: ${labelFor(DATA.variants[state.creature], state.variant)}`);
-        }
-
+        if (state.variant) parts.push(`variant: ${labelFor(DATA.variants[state.creature], state.variant)}`);
         if (state.location) parts.push(`location: ${labelFor(DATA.locations, state.location)}`);
         if (state.atmosphere) parts.push(`atmosphere: ${labelFor(DATA.atmospheres, state.atmosphere)}`);
-        if (state.camera) parts.push(`capture: ${labelFor(DATA.cameras, state.camera)}`);
 
-        // Subtle “CRT archive” cues (no nightclub flicker)
-        parts.push("subtle scanlines, low contrast, archival grain, timeworn documentation, restrained horror");
+        // keep this minimal and MJ-useful
+        parts.push("subtle scanlines, archival wear, restrained horror");
 
-        finalPrompt.value = parts.join(", ");
+        const descriptive = parts.join(", ");
+
+        // params at end (space-separated)
+        const params = [];
+
+        // Always include ar/chaos (you can change to "only if not default" if you want)
+        const ar = state.aspectRatio || "16:9";
+        params.push(`--ar ${ar}`);
+
+        const chaos = clampInt(state.chaos, 0, 100, 10);
+        params.push(`--chaos ${chaos}`);
+
+        if (state.raw) params.push(`--raw`);
+
+        const s = clampInt(state.stylize, 0, 1000, 100);
+        if (s !== 100) params.push(`--s ${s}`);
+
+        const w = clampInt(state.weird, 0, 3000, 0);
+        if (w !== 0) params.push(`--w ${w}`);
+
+        const q = String(clampInt(state.quality, 1, 4, 1));
+        // only allow 1/2/4; if someone types 3 it clamps to 3, so normalize:
+        const qNorm = (q === "2" || q === "4") ? q : "1";
+        if (qNorm !== "1") params.push(`--q ${qNorm}`);
+
+        finalPrompt.value = descriptive + " " + params.join(" ");
       }
 
       async function copyPrompt() {
@@ -523,7 +715,6 @@ parts.push("low light exposure, subtle motion blur");
           await navigator.clipboard.writeText(text);
           copyHint.textContent = "Copied to clipboard.";
         } catch (e) {
-          // Fallback
           finalPrompt.focus();
           finalPrompt.select();
           document.execCommand("copy");
@@ -540,6 +731,12 @@ parts.push("low light exposure, subtle motion blur");
         state.location = "";
         state.atmosphere = "";
         state.camera = "";
+        state.aspectRatio = "16:9";
+        state.chaos = "10";
+        state.raw = false;
+        state.stylize = "100";
+        state.weird = "0";
+        state.quality = "1";
         copyHint.textContent = "";
         renderControls();
         renderPrompt();
@@ -548,7 +745,6 @@ parts.push("low light exposure, subtle motion blur");
       copyBtn.addEventListener("click", copyPrompt);
       resetBtn.addEventListener("click", resetAll);
 
-      // Init
       renderControls();
       renderPrompt();
     })();
