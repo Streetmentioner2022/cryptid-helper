@@ -188,27 +188,19 @@
       text-transform: uppercase;
     }
 
-    /* checkbox row */
-    .checkrow{
-      display: flex;
+    .pill{
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
       border: 1px solid var(--border);
       background: rgba(0,0,0,.25);
-      padding: 10px 12px;
-      border-radius: 12px;
-    }
-    .checkrow input{ transform: scale(1.15); }
-    .checkrow .labeltext{
-      letter-spacing: .14em;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .08em;
       text-transform: uppercase;
-      font-size: 12px;
-      opacity: .9;
-    }
-    .checkrow .sub{
-      margin-left: auto;
-      font-size: 12px;
-      opacity: .7;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -227,7 +219,7 @@
 
     <section class="panel" id="prompt-generator">
       <h2 class="panel-title mono">Prompt Composer</h2>
-      <p class="panel-subtitle mono">Classification → Creature → (Variant) → Location → Atmosphere → Capture Type → MJ Params</p>
+      <p class="panel-subtitle mono">Found footage realism × analog folklore • optimized for MidJourney V7</p>
 
       <div class="grid">
         <div class="controls" id="controls"></div>
@@ -242,6 +234,7 @@
           </div>
 
           <p class="hint mono" id="copyHint" aria-live="polite"></p>
+          <div class="pill mono" id="statusPill">MJ Params: —</div>
 
           <div class="divider"></div>
           <div class="footer mono">NAFO // INTERNAL TOOLING // DO NOT DISTRIBUTE</div>
@@ -366,10 +359,22 @@
           { value: "1", label: "1 (Default)" },
           { value: "2", label: "2 (More detail / more GPU)" },
           { value: "4", label: "4 (Max detail / more GPU)" }
+        ],
+
+        folkloreIntensity: [
+          { value: "0", label: "0 — Mundane (realism)" },
+          { value: "1", label: "1 — Local Legend" },
+          { value: "2", label: "2 — Unsettling" },
+          { value: "3", label: "3 — Mythic" }
+        ],
+
+        credibility: [
+          { value: "believable", label: "Believable (documentary)" },
+          { value: "questionable", label: "Questionable (ambiguous)" },
+          { value: "fabricated", label: "Fabricated (staged)" }
         ]
       };
 
-      // Found footage + analog folklore base (MJ-useful language)
       const DEFAULT_STYLE_BASE = [
         "found footage documentary photograph",
         "accidental folklore documentation",
@@ -378,7 +383,6 @@
         "no cinematic polish"
       ];
 
-      // Camera overrides (option 1)
       const CAMERA_PROFILES = {
         "35mm": [
           "found footage documentary photograph",
@@ -431,7 +435,20 @@
         ]
       };
 
-      // State (defaults chosen to keep output clean)
+      // Dial mappings
+      const FOLKLORE_MAP = {
+        "0": { s: 50,  w: 0   },
+        "1": { s: 100, w: 40  },
+        "2": { s: 200, w: 120 },
+        "3": { s: 350, w: 300 }
+      };
+
+      const CREDIBILITY_MAP = {
+        believable:   { chaos: 5,  tag: "documentary authenticity, plausible event" },
+        questionable: { chaos: 15, tag: "ambiguous evidence, unclear subject" },
+        fabricated:   { chaos: 30, tag: "possible staged footage, uncanny presentation" }
+      };
+
       const state = {
         classification: "",
         creature: "",
@@ -439,12 +456,19 @@
         location: "",
         atmosphere: "",
         camera: "",
+
+        // MJ params
         aspectRatio: "16:9",
         chaos: "10",
         raw: false,
-        stylize: "100",   // default 100; omitted unless changed
-        weird: "0",       // default 0; omitted unless changed
-        quality: "1"      // default 1; omitted unless changed
+        quality: "1",
+
+        // new “musical” dials
+        folklore: "1",
+        credibility: "questionable",
+
+        // internal: whether user manually touched chaos
+        chaosLockedByUser: false
       };
 
       const controls = document.getElementById("controls");
@@ -452,6 +476,7 @@
       const copyBtn = document.getElementById("copyBtn");
       const resetBtn = document.getElementById("resetBtn");
       const copyHint = document.getElementById("copyHint");
+      const statusPill = document.getElementById("statusPill");
 
       function el(tag, attrs = {}, children = []) {
         const node = document.createElement(tag);
@@ -471,7 +496,6 @@
         options.forEach(opt => select.appendChild(el("option", { value: opt.value }, [opt.label])));
         select.value = value || "";
         select.addEventListener("change", (e) => onChange(e.target.value));
-
         return el("div", { class: "field" }, [
           el("label", { class: "label mono", for: id }, [label]),
           select
@@ -486,21 +510,18 @@
 
         const input = el("input", attrs);
         input.addEventListener("input", (e) => onInput(e.target.value));
-
         return el("div", { class: "field" }, [
           el("label", { class: "label mono", for: id }, [label]),
           input
         ]);
       }
 
-      function makeCheckbox({ id, label, checked, hint, onChange }) {
+      function makeCheckbox({ id, label, checked, onChange }) {
         const box = el("input", { id, type: "checkbox", checked });
         box.addEventListener("change", (e) => onChange(e.target.checked));
-
-        return el("div", { class: "checkrow" }, [
-          box,
-          el("div", { class: "labeltext mono" }, [label]),
-          el("div", { class: "sub mono" }, [hint || ""])
+        return el("div", { class: "field" }, [
+          el("label", { class: "label mono" }, [label]),
+          el("div", { class: "row" }, [ box ])
         ]);
       }
 
@@ -517,10 +538,52 @@
         return item ? item.label : "";
       }
 
+      function applyDials() {
+        // Folklore intensity sets stylize+weird (always)
+        const f = FOLKLORE_MAP[state.folklore] || FOLKLORE_MAP["1"];
+        state._stylize = f.s;
+        state._weird = f.w;
+
+        // Credibility sets suggested chaos unless user has manually locked chaos
+        const c = CREDIBILITY_MAP[state.credibility] || CREDIBILITY_MAP.questionable;
+        state._credTag = c.tag;
+
+        if (!state.chaosLockedByUser) {
+          state.chaos = String(c.chaos);
+        }
+      }
+
       function renderControls() {
         controls.innerHTML = "";
 
-        // 1) Classification
+        // Dials first (so user sees the “instrument”)
+        controls.appendChild(makeSelect({
+          id: "folkloreSelect",
+          label: "FOLKLORE INTENSITY",
+          options: DATA.folkloreIntensity,
+          placeholder: "Select intensity…",
+          value: state.folklore,
+          onChange: (val) => {
+            state.folklore = val || "1";
+            applyDials();
+            renderPrompt();
+          }
+        }));
+
+        controls.appendChild(makeSelect({
+          id: "credSelect",
+          label: "CREDIBILITY",
+          options: DATA.credibility,
+          placeholder: "Select credibility…",
+          value: state.credibility,
+          onChange: (val) => {
+            state.credibility = val || "questionable";
+            applyDials();
+            renderPrompt();
+          }
+        }));
+
+        // Classification
         controls.appendChild(makeSelect({
           id: "classificationSelect",
           label: "CLASSIFICATION",
@@ -535,7 +598,7 @@
           }
         }));
 
-        // 2) Creature
+        // Creature
         if (state.classification) {
           controls.appendChild(makeSelect({
             id: "creatureSelect",
@@ -552,7 +615,7 @@
           }));
         }
 
-        // 3) Variant
+        // Variant
         const variantOptions = state.creature ? (DATA.variants[state.creature] || []) : [];
         if (state.creature && variantOptions.length) {
           controls.appendChild(makeSelect({
@@ -569,7 +632,6 @@
         }
 
         if (state.creature) {
-          // 4) Location
           controls.appendChild(makeSelect({
             id: "locationSelect",
             label: "LOCATION",
@@ -579,7 +641,6 @@
             onChange: (val) => { state.location = val; renderPrompt(); }
           }));
 
-          // 5) Atmosphere
           controls.appendChild(makeSelect({
             id: "atmosphereSelect",
             label: "ATMOSPHERE",
@@ -589,7 +650,6 @@
             onChange: (val) => { state.atmosphere = val; renderPrompt(); }
           }));
 
-          // 6) Camera (overrides style)
           controls.appendChild(makeSelect({
             id: "cameraSelect",
             label: "CAPTURE TYPE (OVERRIDES STYLE)",
@@ -599,7 +659,7 @@
             onChange: (val) => { state.camera = val; renderPrompt(); }
           }));
 
-          // MJ PARAMS
+          // MJ params
           controls.appendChild(makeSelect({
             id: "aspectRatioSelect",
             label: "ASPECT RATIO (MJ --ar)",
@@ -613,35 +673,13 @@
             id: "chaosInput",
             label: "CHAOS (MJ --chaos 0–100)",
             value: state.chaos,
-            placeholder: "0–100 (e.g. 10)",
+            placeholder: "0–100",
             min: 0, max: 100, step: 1,
-            onInput: (val) => { state.chaos = String(clampInt(val, 0, 100, 10)); renderPrompt(); }
-          }));
-
-          controls.appendChild(makeCheckbox({
-            id: "rawToggle",
-            label: "RAW MODE",
-            checked: state.raw,
-            hint: "--raw",
-            onChange: (checked) => { state.raw = checked; renderPrompt(); }
-          }));
-
-          controls.appendChild(makeInput({
-            id: "stylizeInput",
-            label: "STYLIZE (MJ --s 0–1000)",
-            value: state.stylize,
-            placeholder: "0–1000 (default 100)",
-            min: 0, max: 1000, step: 1,
-            onInput: (val) => { state.stylize = String(clampInt(val, 0, 1000, 100)); renderPrompt(); }
-          }));
-
-          controls.appendChild(makeInput({
-            id: "weirdInput",
-            label: "WEIRD (MJ --w 0–3000)",
-            value: state.weird,
-            placeholder: "0–3000 (default 0)",
-            min: 0, max: 3000, step: 1,
-            onInput: (val) => { state.weird = String(clampInt(val, 0, 3000, 0)); renderPrompt(); }
+            onInput: (val) => {
+              state.chaosLockedByUser = true;
+              state.chaos = String(clampInt(val, 0, 100, 10));
+              renderPrompt();
+            }
           }));
 
           controls.appendChild(makeSelect({
@@ -652,18 +690,30 @@
             value: state.quality,
             onChange: (val) => { state.quality = val || "1"; renderPrompt(); }
           }));
+
+          // Raw toggle (simple checkbox)
+          controls.appendChild(makeCheckbox({
+            id: "rawToggle",
+            label: "RAW MODE (MJ --raw)",
+            checked: state.raw,
+            onChange: (checked) => { state.raw = checked; renderPrompt(); }
+          }));
         }
       }
 
       function renderPrompt() {
+        applyDials();
+
         const parts = [];
 
-        // camera overrides base
         const base = (state.camera && CAMERA_PROFILES[state.camera])
           ? CAMERA_PROFILES[state.camera]
           : DEFAULT_STYLE_BASE;
 
         base.forEach(s => parts.push(s));
+
+        // credibility adds a subtle tone tag (MJ-useful)
+        if (state._credTag) parts.push(state._credTag);
 
         if (state.classification) parts.push(`classification: ${labelFor(DATA.classifications, state.classification)}`);
 
@@ -676,41 +726,39 @@
         if (state.location) parts.push(`location: ${labelFor(DATA.locations, state.location)}`);
         if (state.atmosphere) parts.push(`atmosphere: ${labelFor(DATA.atmospheres, state.atmosphere)}`);
 
-        // keep this minimal and MJ-useful
         parts.push("subtle scanlines, archival wear, restrained horror");
 
         const descriptive = parts.join(", ");
 
-        // params at end (space-separated)
         const params = [];
 
-        // Always include ar/chaos (you can change to "only if not default" if you want)
-        const ar = state.aspectRatio || "16:9";
-        params.push(`--ar ${ar}`);
+        // always include ar
+        params.push(`--ar ${state.aspectRatio || "16:9"}`);
 
+        // chaos
         const chaos = clampInt(state.chaos, 0, 100, 10);
         params.push(`--chaos ${chaos}`);
 
+        // raw
         if (state.raw) params.push(`--raw`);
 
-        const s = clampInt(state.stylize, 0, 1000, 100);
-        if (s !== 100) params.push(`--s ${s}`);
+        // s + w from folklore dial (always include, because it’s core to the instrument)
+        params.push(`--s ${state._stylize}`);
+        params.push(`--w ${state._weird}`);
 
-        const w = clampInt(state.weird, 0, 3000, 0);
-        if (w !== 0) params.push(`--w ${w}`);
+        // q (only if not default)
+        const q = state.quality === "2" || state.quality === "4" ? state.quality : "1";
+        if (q !== "1") params.push(`--q ${q}`);
 
-        const q = String(clampInt(state.quality, 1, 4, 1));
-        // only allow 1/2/4; if someone types 3 it clamps to 3, so normalize:
-        const qNorm = (q === "2" || q === "4") ? q : "1";
-        if (qNorm !== "1") params.push(`--q ${qNorm}`);
+        const full = descriptive + " " + params.join(" ");
+        finalPrompt.value = full;
 
-        finalPrompt.value = descriptive + " " + params.join(" ");
+        statusPill.textContent = "MJ Params: " + params.join(" ");
       }
 
       async function copyPrompt() {
         copyHint.textContent = "";
         const text = finalPrompt.value;
-
         try {
           await navigator.clipboard.writeText(text);
           copyHint.textContent = "Copied to clipboard.";
@@ -720,7 +768,6 @@
           document.execCommand("copy");
           copyHint.textContent = "Copied (fallback).";
         }
-
         setTimeout(() => (copyHint.textContent = ""), 1400);
       }
 
@@ -734,9 +781,10 @@
         state.aspectRatio = "16:9";
         state.chaos = "10";
         state.raw = false;
-        state.stylize = "100";
-        state.weird = "0";
         state.quality = "1";
+        state.folklore = "1";
+        state.credibility = "questionable";
+        state.chaosLockedByUser = false;
         copyHint.textContent = "";
         renderControls();
         renderPrompt();
@@ -745,6 +793,7 @@
       copyBtn.addEventListener("click", copyPrompt);
       resetBtn.addEventListener("click", resetAll);
 
+      // Init
       renderControls();
       renderPrompt();
     })();
