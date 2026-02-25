@@ -30,7 +30,6 @@
       overflow-x: hidden;
     }
 
-    /* Subtle CRT scanlines + noise */
     .scanlines::before{
       content:"";
       position: fixed;
@@ -58,18 +57,10 @@
       z-index: 41;
     }
 
-    .wrap{
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 18px 16px 40px;
-    }
+    .wrap{ max-width: 1100px; margin: 0 auto; padding: 18px 16px 40px; }
 
-    /* Top "CLASSIFIED" bar */
     .classbar{
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
       border: 1px solid var(--border);
       background: rgba(0,0,0,.28);
       border-radius: var(--radius);
@@ -85,7 +76,6 @@
     }
     .mono{ font-family: var(--mono); }
 
-    /* Title block */
     .titleblock{
       border: 1px solid var(--border);
       background: rgba(0,0,0,.22);
@@ -100,13 +90,8 @@
       letter-spacing: .06em;
       text-transform: uppercase;
     }
-    .titleblock p{
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.45;
-    }
+    .titleblock p{ margin: 0; color: var(--muted); line-height: 1.45; }
 
-    /* Panel + generator layout */
     .panel{
       border: 1px solid var(--border);
       background: var(--panel);
@@ -120,23 +105,12 @@
       letter-spacing: .06em;
       text-transform: uppercase;
     }
-    .panel-subtitle{
-      margin: 0 0 14px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
+    .panel-subtitle{ margin: 0 0 14px; color: var(--muted); line-height: 1.45; }
 
-    .grid{
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    @media (max-width: 900px){
-      .grid{ grid-template-columns: 1fr; }
-    }
+    .grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
 
     .controls{ display: grid; gap: 12px; }
-
     .field{ display: grid; gap: 6px; }
     .label{
       font-size: 12px;
@@ -144,7 +118,6 @@
       opacity: .9;
       text-transform: uppercase;
     }
-
     .select, .textarea, .input{
       width: 100%;
       border-radius: 12px;
@@ -175,11 +148,7 @@
     .btn.ghost{ background: transparent; opacity: .9; }
 
     .hint{ margin: 10px 0 0; color: var(--muted); min-height: 18px; }
-    .divider{
-      height: 1px;
-      background: rgba(255,255,255,.08);
-      margin: 14px 0;
-    }
+    .divider{ height: 1px; background: rgba(255,255,255,.08); margin: 14px 0; }
     .footer{
       margin-top: 14px;
       color: var(--muted);
@@ -202,6 +171,28 @@
       text-transform: uppercase;
       margin-top: 10px;
     }
+
+    .checkrow{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.25);
+      padding: 10px 12px;
+      border-radius: 12px;
+    }
+    .checkrow input{ transform: scale(1.15); }
+    .checkrow .labeltext{
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      font-size: 12px;
+      opacity: .9;
+    }
+    .checkrow .sub{
+      margin-left: auto;
+      font-size: 12px;
+      opacity: .7;
+    }
   </style>
 </head>
 
@@ -219,7 +210,7 @@
 
     <section class="panel" id="prompt-generator">
       <h2 class="panel-title mono">Prompt Composer</h2>
-      <p class="panel-subtitle mono">Found footage realism × analog folklore • optimized for MidJourney V7</p>
+      <p class="panel-subtitle mono">Evidence-first ordering • creature often absent/obscured • MidJourney V7</p>
 
       <div class="grid">
         <div class="controls" id="controls"></div>
@@ -246,6 +237,57 @@
   <script>
     (() => {
       const DATA = {
+        folkloreIntensity: [
+          { value: "0", label: "0 — Mundane (realism)" },
+          { value: "1", label: "1 — Local Legend" },
+          { value: "2", label: "2 — Unsettling" },
+          { value: "3", label: "3 — Mythic" }
+        ],
+        credibility: [
+          { value: "believable", label: "Believable (documentary)" },
+          { value: "questionable", label: "Questionable (ambiguous)" },
+          { value: "fabricated", label: "Fabricated (staged)" }
+        ],
+
+        // NEW: evidence-first subject control
+        evidence: [
+          { value: "none", label: "None — no subject visible" },
+          { value: "trace", label: "Trace — footprints / damage / disturbed brush" },
+          { value: "implied", label: "Implied — shadow / reflection / shape in fog" },
+          { value: "distant", label: "Distant — tiny silhouette on horizon" },
+          { value: "partial", label: "Partial — obscured / frame cut-off" },
+          { value: "clear", label: "Clear — full view (rare)" }
+        ],
+
+        cameras: [
+          { value: "35mm", label: "35mm film photo" },
+          { value: "polaroid", label: "Polaroid" },
+          { value: "cctv", label: "CCTV still" },
+          { value: "handheld_video", label: "Handheld camcorder frame" },
+          { value: "thermal", label: "Thermal imaging" },
+          { value: "night_vision", label: "Night vision" }
+        ],
+
+        locations: [
+          { value: "pine_forest", label: "Pine forest" },
+          { value: "abandoned_mill", label: "Abandoned mill" },
+          { value: "rural_road", label: "Rural road" },
+          { value: "swamp", label: "Swamp" },
+          { value: "coastal_cliffs", label: "Coastal cliffs" },
+          { value: "suburban_woods", label: "Suburban treeline" },
+          { value: "derelict_town", label: "Derelict town" }
+        ],
+
+        atmospheres: [
+          { value: "fog", label: "Fog" },
+          { value: "thunderstorm", label: "Thunderstorm" },
+          { value: "heavy_rain", label: "Heavy rain" },
+          { value: "snow", label: "Snow" },
+          { value: "low_mist", label: "Low ground mist" },
+          { value: "moonless_night", label: "Moonless night" },
+          { value: "sodium_vapor", label: "Sodium-vapor streetlight haze" }
+        ],
+
         classifications: [
           { value: "cryptid", label: "Cryptid" },
           { value: "fae", label: "Fae" },
@@ -316,35 +358,6 @@
           ]
         },
 
-        locations: [
-          { value: "pine_forest", label: "Pine forest" },
-          { value: "abandoned_mill", label: "Abandoned mill" },
-          { value: "rural_road", label: "Rural road" },
-          { value: "swamp", label: "Swamp" },
-          { value: "coastal_cliffs", label: "Coastal cliffs" },
-          { value: "suburban_woods", label: "Suburban treeline" },
-          { value: "derelict_town", label: "Derelict town" }
-        ],
-
-        atmospheres: [
-          { value: "fog", label: "Fog" },
-          { value: "thunderstorm", label: "Thunderstorm" },
-          { value: "heavy_rain", label: "Heavy rain" },
-          { value: "snow", label: "Snow" },
-          { value: "low_mist", label: "Low ground mist" },
-          { value: "moonless_night", label: "Moonless night" },
-          { value: "sodium_vapor", label: "Sodium-vapor streetlight haze" }
-        ],
-
-        cameras: [
-          { value: "35mm", label: "35mm film photo" },
-          { value: "polaroid", label: "Polaroid" },
-          { value: "cctv", label: "CCTV still" },
-          { value: "handheld_video", label: "Handheld camcorder frame" },
-          { value: "thermal", label: "Thermal imaging" },
-          { value: "night_vision", label: "Night vision" }
-        ],
-
         aspectRatios: [
           { value: "1:1", label: "1:1 (Square)" },
           { value: "3:2", label: "3:2 (35mm photo)" },
@@ -359,19 +372,6 @@
           { value: "1", label: "1 (Default)" },
           { value: "2", label: "2 (More detail / more GPU)" },
           { value: "4", label: "4 (Max detail / more GPU)" }
-        ],
-
-        folkloreIntensity: [
-          { value: "0", label: "0 — Mundane (realism)" },
-          { value: "1", label: "1 — Local Legend" },
-          { value: "2", label: "2 — Unsettling" },
-          { value: "3", label: "3 — Mythic" }
-        ],
-
-        credibility: [
-          { value: "believable", label: "Believable (documentary)" },
-          { value: "questionable", label: "Questionable (ambiguous)" },
-          { value: "fabricated", label: "Fabricated (staged)" }
         ]
       };
 
@@ -435,7 +435,6 @@
         ]
       };
 
-      // Dial mappings
       const FOLKLORE_MAP = {
         "0": { s: 50,  w: 0   },
         "1": { s: 100, w: 40  },
@@ -449,25 +448,33 @@
         fabricated:   { chaos: 30, tag: "possible staged footage, uncanny presentation" }
       };
 
+      const EVIDENCE_TAGS = {
+        none:    "no subject visible, empty frame, unsettling absence",
+        trace:   "only traces visible, disturbed brush, footprints, broken branches",
+        implied: "implied presence, shadow in fog, reflection anomaly, half-seen shape",
+        distant: "distant silhouette on horizon, barely perceptible figure",
+        partial: "partial glimpse, obscured by trees, frame cut-off, motion blur",
+        clear:   "clear subject visibility, full figure present"
+      };
+
       const state = {
+        folklore: "1",
+        credibility: "questionable",
+
+        camera: "",
+        location: "",
+        atmosphere: "",
+        evidence: "distant",
+
         classification: "",
         creature: "",
         variant: "",
-        location: "",
-        atmosphere: "",
-        camera: "",
 
-        // MJ params
         aspectRatio: "16:9",
         chaos: "10",
         raw: false,
         quality: "1",
 
-        // new “musical” dials
-        folklore: "1",
-        credibility: "questionable",
-
-        // internal: whether user manually touched chaos
         chaosLockedByUser: false
       };
 
@@ -507,7 +514,6 @@
         if (min !== undefined) attrs.min = String(min);
         if (max !== undefined) attrs.max = String(max);
         if (step !== undefined) attrs.step = String(step);
-
         const input = el("input", attrs);
         input.addEventListener("input", (e) => onInput(e.target.value));
         return el("div", { class: "field" }, [
@@ -516,12 +522,13 @@
         ]);
       }
 
-      function makeCheckbox({ id, label, checked, onChange }) {
+      function makeCheckboxRow({ id, label, checked, hint, onChange }) {
         const box = el("input", { id, type: "checkbox", checked });
         box.addEventListener("change", (e) => onChange(e.target.checked));
-        return el("div", { class: "field" }, [
-          el("label", { class: "label mono" }, [label]),
-          el("div", { class: "row" }, [ box ])
+        return el("div", { class: "checkrow" }, [
+          box,
+          el("div", { class: "labeltext mono" }, [label]),
+          el("div", { class: "sub mono" }, [hint || ""])
         ]);
       }
 
@@ -539,35 +546,27 @@
       }
 
       function applyDials() {
-        // Folklore intensity sets stylize+weird (always)
         const f = FOLKLORE_MAP[state.folklore] || FOLKLORE_MAP["1"];
         state._stylize = f.s;
         state._weird = f.w;
 
-        // Credibility sets suggested chaos unless user has manually locked chaos
         const c = CREDIBILITY_MAP[state.credibility] || CREDIBILITY_MAP.questionable;
         state._credTag = c.tag;
 
-        if (!state.chaosLockedByUser) {
-          state.chaos = String(c.chaos);
-        }
+        if (!state.chaosLockedByUser) state.chaos = String(c.chaos);
       }
 
       function renderControls() {
         controls.innerHTML = "";
 
-        // Dials first (so user sees the “instrument”)
+        // 1) Dials
         controls.appendChild(makeSelect({
           id: "folkloreSelect",
           label: "FOLKLORE INTENSITY",
           options: DATA.folkloreIntensity,
           placeholder: "Select intensity…",
           value: state.folklore,
-          onChange: (val) => {
-            state.folklore = val || "1";
-            applyDials();
-            renderPrompt();
-          }
+          onChange: (val) => { state.folklore = val || "1"; renderPrompt(); }
         }));
 
         controls.appendChild(makeSelect({
@@ -576,129 +575,138 @@
           options: DATA.credibility,
           placeholder: "Select credibility…",
           value: state.credibility,
-          onChange: (val) => {
-            state.credibility = val || "questionable";
-            applyDials();
-            renderPrompt();
-          }
+          onChange: (val) => { state.credibility = val || "questionable"; renderPrompt(); }
         }));
 
-        // Classification
+        // 2) Capture Type early
         controls.appendChild(makeSelect({
-          id: "classificationSelect",
-          label: "CLASSIFICATION",
-          options: DATA.classifications,
-          placeholder: "Select classification…",
-          value: state.classification,
-          onChange: (val) => {
-            state.classification = val;
-            clearBelow(["creature", "variant", "location", "atmosphere", "camera"]);
-            renderControls();
-            renderPrompt();
-          }
+          id: "cameraSelect",
+          label: "CAPTURE TYPE (OVERRIDES STYLE)",
+          options: DATA.cameras,
+          placeholder: "Select capture type…",
+          value: state.camera,
+          onChange: (val) => { state.camera = val; renderPrompt(); }
         }));
 
-        // Creature
-        if (state.classification) {
+        // 3) Location + Atmosphere
+        controls.appendChild(makeSelect({
+          id: "locationSelect",
+          label: "LOCATION",
+          options: DATA.locations,
+          placeholder: "Select location…",
+          value: state.location,
+          onChange: (val) => { state.location = val; renderPrompt(); }
+        }));
+
+        controls.appendChild(makeSelect({
+          id: "atmosphereSelect",
+          label: "ATMOSPHERE",
+          options: DATA.atmospheres,
+          placeholder: "Select atmosphere…",
+          value: state.atmosphere,
+          onChange: (val) => { state.atmosphere = val; renderPrompt(); }
+        }));
+
+        // 4) Evidence level (key for your note)
+        controls.appendChild(makeSelect({
+          id: "evidenceSelect",
+          label: "EVIDENCE LEVEL",
+          options: DATA.evidence,
+          placeholder: "Select evidence…",
+          value: state.evidence,
+          onChange: (val) => { state.evidence = val || "distant"; renderControls(); renderPrompt(); }
+        }));
+
+        // 5) Creature as optional (only show if evidence is not "none" or "trace")
+        const showCreature = (state.evidence !== "none" && state.evidence !== "trace");
+        if (showCreature) {
           controls.appendChild(makeSelect({
-            id: "creatureSelect",
-            label: "CREATURE",
-            options: DATA.creatures[state.classification] || [],
-            placeholder: "Select creature…",
-            value: state.creature,
+            id: "classificationSelect",
+            label: "CLASSIFICATION (OPTIONAL)",
+            options: DATA.classifications,
+            placeholder: "Select classification…",
+            value: state.classification,
             onChange: (val) => {
-              state.creature = val;
-              clearBelow(["variant", "location", "atmosphere", "camera"]);
+              state.classification = val;
+              clearBelow(["creature", "variant"]);
               renderControls();
               renderPrompt();
             }
           }));
+
+          if (state.classification) {
+            controls.appendChild(makeSelect({
+              id: "creatureSelect",
+              label: "CREATURE (OPTIONAL)",
+              options: DATA.creatures[state.classification] || [],
+              placeholder: "Select creature…",
+              value: state.creature,
+              onChange: (val) => {
+                state.creature = val;
+                clearBelow(["variant"]);
+                renderControls();
+                renderPrompt();
+              }
+            }));
+          }
+
+          const variantOptions = state.creature ? (DATA.variants[state.creature] || []) : [];
+          if (state.creature && variantOptions.length) {
+            controls.appendChild(makeSelect({
+              id: "variantSelect",
+              label: "VARIANT (OPTIONAL)",
+              options: variantOptions,
+              placeholder: "Select variant…",
+              value: state.variant,
+              onChange: (val) => { state.variant = val; renderPrompt(); }
+            }));
+          }
+        } else {
+          // if evidence implies no creature selection, clear them
+          state.classification = "";
+          state.creature = "";
+          state.variant = "";
         }
 
-        // Variant
-        const variantOptions = state.creature ? (DATA.variants[state.creature] || []) : [];
-        if (state.creature && variantOptions.length) {
-          controls.appendChild(makeSelect({
-            id: "variantSelect",
-            label: "VARIANT",
-            options: variantOptions,
-            placeholder: "Select variant…",
-            value: state.variant,
-            onChange: (val) => {
-              state.variant = val;
-              renderPrompt();
-            }
-          }));
-        }
+        // 6) MJ Params
+        controls.appendChild(makeSelect({
+          id: "aspectRatioSelect",
+          label: "ASPECT RATIO (MJ --ar)",
+          options: DATA.aspectRatios,
+          placeholder: "Select aspect ratio…",
+          value: state.aspectRatio,
+          onChange: (val) => { state.aspectRatio = val || "16:9"; renderPrompt(); }
+        }));
 
-        if (state.creature) {
-          controls.appendChild(makeSelect({
-            id: "locationSelect",
-            label: "LOCATION",
-            options: DATA.locations,
-            placeholder: "Select location…",
-            value: state.location,
-            onChange: (val) => { state.location = val; renderPrompt(); }
-          }));
+        controls.appendChild(makeInput({
+          id: "chaosInput",
+          label: "CHAOS (MJ --chaos 0–100)",
+          value: state.chaos,
+          placeholder: "0–100",
+          min: 0, max: 100, step: 1,
+          onInput: (val) => {
+            state.chaosLockedByUser = true;
+            state.chaos = String(clampInt(val, 0, 100, 10));
+            renderPrompt();
+          }
+        }));
 
-          controls.appendChild(makeSelect({
-            id: "atmosphereSelect",
-            label: "ATMOSPHERE",
-            options: DATA.atmospheres,
-            placeholder: "Select atmosphere…",
-            value: state.atmosphere,
-            onChange: (val) => { state.atmosphere = val; renderPrompt(); }
-          }));
+        controls.appendChild(makeSelect({
+          id: "qualitySelect",
+          label: "QUALITY (MJ --q)",
+          options: DATA.quality,
+          placeholder: "Select quality…",
+          value: state.quality,
+          onChange: (val) => { state.quality = val || "1"; renderPrompt(); }
+        }));
 
-          controls.appendChild(makeSelect({
-            id: "cameraSelect",
-            label: "CAPTURE TYPE (OVERRIDES STYLE)",
-            options: DATA.cameras,
-            placeholder: "Select capture type…",
-            value: state.camera,
-            onChange: (val) => { state.camera = val; renderPrompt(); }
-          }));
-
-          // MJ params
-          controls.appendChild(makeSelect({
-            id: "aspectRatioSelect",
-            label: "ASPECT RATIO (MJ --ar)",
-            options: DATA.aspectRatios,
-            placeholder: "Select aspect ratio…",
-            value: state.aspectRatio,
-            onChange: (val) => { state.aspectRatio = val || "16:9"; renderPrompt(); }
-          }));
-
-          controls.appendChild(makeInput({
-            id: "chaosInput",
-            label: "CHAOS (MJ --chaos 0–100)",
-            value: state.chaos,
-            placeholder: "0–100",
-            min: 0, max: 100, step: 1,
-            onInput: (val) => {
-              state.chaosLockedByUser = true;
-              state.chaos = String(clampInt(val, 0, 100, 10));
-              renderPrompt();
-            }
-          }));
-
-          controls.appendChild(makeSelect({
-            id: "qualitySelect",
-            label: "QUALITY (MJ --q)",
-            options: DATA.quality,
-            placeholder: "Select quality…",
-            value: state.quality,
-            onChange: (val) => { state.quality = val || "1"; renderPrompt(); }
-          }));
-
-          // Raw toggle (simple checkbox)
-          controls.appendChild(makeCheckbox({
-            id: "rawToggle",
-            label: "RAW MODE (MJ --raw)",
-            checked: state.raw,
-            onChange: (checked) => { state.raw = checked; renderPrompt(); }
-          }));
-        }
+        controls.appendChild(makeCheckboxRow({
+          id: "rawToggle",
+          label: "RAW MODE",
+          checked: state.raw,
+          hint: "--raw",
+          onChange: (checked) => { state.raw = checked; renderPrompt(); }
+        }));
       }
 
       function renderPrompt() {
@@ -712,47 +720,55 @@
 
         base.forEach(s => parts.push(s));
 
-        // credibility adds a subtle tone tag (MJ-useful)
         if (state._credTag) parts.push(state._credTag);
 
-        if (state.classification) parts.push(`classification: ${labelFor(DATA.classifications, state.classification)}`);
+        // Evidence language comes BEFORE creature
+        if (state.evidence) parts.push(EVIDENCE_TAGS[state.evidence] || "");
 
-        if (state.creature) {
-          const cList = DATA.creatures[state.classification] || [];
-          parts.push(`subject: ${labelFor(cList, state.creature)}`);
-        }
-
-        if (state.variant) parts.push(`variant: ${labelFor(DATA.variants[state.creature], state.variant)}`);
         if (state.location) parts.push(`location: ${labelFor(DATA.locations, state.location)}`);
         if (state.atmosphere) parts.push(`atmosphere: ${labelFor(DATA.atmospheres, state.atmosphere)}`);
 
+        // Creature is conditional:
+        // - clear: include subject explicitly (if chosen)
+        // - distant/partial/implied: only mention if chosen, but keep it vague
+        const evidence = state.evidence;
+
+        if (state.creature && state.classification) {
+          const cList = DATA.creatures[state.classification] || [];
+          const creatureLabel = labelFor(cList, state.creature);
+
+          if (evidence === "clear") {
+            parts.push(`subject: ${creatureLabel}`);
+            if (state.variant) parts.push(`variant: ${labelFor(DATA.variants[state.creature], state.variant)}`);
+          } else if (evidence === "distant") {
+            parts.push(`possible distant figure: ${creatureLabel}`);
+          } else if (evidence === "partial") {
+            parts.push(`partial glimpse suggests: ${creatureLabel}`);
+          } else if (evidence === "implied") {
+            parts.push(`implied presence suggests: ${creatureLabel}`);
+          }
+        }
+
         parts.push("subtle scanlines, archival wear, restrained horror");
 
-        const descriptive = parts.join(", ");
+        const descriptive = parts.filter(Boolean).join(", ");
 
         const params = [];
-
-        // always include ar
         params.push(`--ar ${state.aspectRatio || "16:9"}`);
 
-        // chaos
         const chaos = clampInt(state.chaos, 0, 100, 10);
         params.push(`--chaos ${chaos}`);
 
-        // raw
         if (state.raw) params.push(`--raw`);
 
-        // s + w from folklore dial (always include, because it’s core to the instrument)
+        // dials always included (core instrument)
         params.push(`--s ${state._stylize}`);
         params.push(`--w ${state._weird}`);
 
-        // q (only if not default)
-        const q = state.quality === "2" || state.quality === "4" ? state.quality : "1";
+        const q = (state.quality === "2" || state.quality === "4") ? state.quality : "1";
         if (q !== "1") params.push(`--q ${q}`);
 
-        const full = descriptive + " " + params.join(" ");
-        finalPrompt.value = full;
-
+        finalPrompt.value = descriptive + " " + params.join(" ");
         statusPill.textContent = "MJ Params: " + params.join(" ");
       }
 
@@ -772,18 +788,19 @@
       }
 
       function resetAll() {
+        state.folklore = "1";
+        state.credibility = "questionable";
+        state.camera = "";
+        state.location = "";
+        state.atmosphere = "";
+        state.evidence = "distant";
         state.classification = "";
         state.creature = "";
         state.variant = "";
-        state.location = "";
-        state.atmosphere = "";
-        state.camera = "";
         state.aspectRatio = "16:9";
         state.chaos = "10";
         state.raw = false;
         state.quality = "1";
-        state.folklore = "1";
-        state.credibility = "questionable";
         state.chaosLockedByUser = false;
         copyHint.textContent = "";
         renderControls();
@@ -793,7 +810,6 @@
       copyBtn.addEventListener("click", copyPrompt);
       resetBtn.addEventListener("click", resetAll);
 
-      // Init
       renderControls();
       renderPrompt();
     })();
