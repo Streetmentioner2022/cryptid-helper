@@ -2,584 +2,552 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>National Anomaly Field Office</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NAFO • Style Prompt Generator</title>
 
   <style>
     :root{
-      --panel: rgba(18, 20, 24, 0.78);
-      --panel2: rgba(14, 16, 20, 0.62);
-      --border: rgba(255,255,255,0.12);
-      --border2: rgba(255,255,255,0.08);
-      --text: rgba(245,246,250,0.92);
-      --muted: rgba(245,246,250,0.62);
-      --muted2: rgba(245,246,250,0.42);
-      --radius: 18px;
-      --radius2: 14px;
-      --shadow: 0 20px 60px rgba(0,0,0,0.55);
+      --bg: #07090d;
+      --panel: rgba(255,255,255,.04);
+      --border: rgba(255,255,255,.12);
+      --border2: rgba(255,255,255,.18);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      --radius: 16px;
     }
 
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
     body{
       margin: 0;
+      font-family: var(--sans);
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(255,255,255,.06), transparent 55%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(255,255,255,.05), transparent 60%),
+                  var(--bg);
       color: var(--text);
-      background:
-        radial-gradient(1200px 700px at 15% 10%, rgba(70,120,160,0.18), transparent 60%),
-        radial-gradient(900px 650px at 85% 20%, rgba(120,90,160,0.14), transparent 55%),
-        radial-gradient(1100px 800px at 50% 90%, rgba(80,120,100,0.12), transparent 55%),
-        linear-gradient(180deg, #050608 0%, #07080a 40%, #050608 100%);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      letter-spacing: 0.2px;
+      overflow-x: hidden;
     }
 
-    /* scanlines */
-    body::before{
+    /* Subtle CRT scanlines + noise */
+    .scanlines::before{
       content:"";
       position: fixed;
       inset: 0;
-      pointer-events:none;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(255,255,255,0.06) 0px,
-        rgba(255,255,255,0.06) 1px,
-        rgba(0,0,0,0.00) 3px,
-        rgba(0,0,0,0.00) 7px
-      );
-      opacity: 0.22;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,.03) 0px,
+          rgba(255,255,255,.03) 1px,
+          rgba(0,0,0,0) 2px,
+          rgba(0,0,0,0) 4px
+        );
       mix-blend-mode: overlay;
-      z-index: 5;
+      opacity: .35;
+      z-index: 40;
     }
-
-    /* grain */
-    body::after{
+    .scanlines::after{
       content:"";
-      position: fixed;
-      inset: -40px;
-      pointer-events:none;
-      background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
-      background-size: 3px 3px;
-      opacity: 0.06;
-      filter: blur(0.2px);
-      mix-blend-mode: overlay;
-      transform: rotate(0.3deg);
-      z-index: 4;
-    }
-
-    .topstrip{
-      width: 100%;
-      background: linear-gradient(90deg, #3a0000, #6a0000, #3a0000);
-      color: #ffb3b3;
-      text-align: center;
-      font-size: 12px;
-      letter-spacing: 2px;
-      padding: 8px 0;
-      font-weight: 800;
-      text-transform: uppercase;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.6);
-      position: sticky;
-      top: 0;
-      z-index: 30;
-    }
-
-    /* CRT overlay (whole screen tint) */
-    .crt{
       position: fixed;
       inset: 0;
       pointer-events: none;
-      z-index: 3;
-      background:
-        linear-gradient(rgba(0,255,140,0.18), rgba(0,255,140,0.18)),
-        radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.65) 100%);
-      mix-blend-mode: multiply;
-      opacity: 0.80;
-    }
-
-    .watermark{
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(-25deg);
-      font-size: 140px;
-      font-weight: 900;
-      letter-spacing: 12px;
-      color: rgba(0,255,150,0.22);
-      pointer-events: none;
-      z-index: 1;
-      white-space: nowrap;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+      opacity: .06;
+      z-index: 41;
     }
 
     .wrap{
-      max-width: 1120px;
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 22px 18px 70px;
-      position: relative;
-      z-index: 10;
+      padding: 18px 16px 40px;
     }
 
-    header{
-      display:flex;
-      align-items:flex-start;
+    /* Top "CLASSIFIED" bar */
+    .classbar{
+      display: flex;
       justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 18px;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.28);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(6px);
     }
+    .classbar span{
+      letter-spacing: .14em;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .mono{ font-family: var(--mono); }
 
+    /* Title block */
     .titleblock{
-      flex: 1;
-      padding: 16px 18px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: linear-gradient(180deg, rgba(24,28,34,0.96), rgba(12,14,18,0.88));
-      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.22);
+      border-radius: var(--radius);
+      padding: 14px 14px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(6px);
     }
-
-    h1{
+    .titleblock h1{
       margin: 0 0 6px;
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 1.2px;
+      font-size: 18px;
+      letter-spacing: .06em;
       text-transform: uppercase;
     }
-
-    .sub{
+    .titleblock p{
       margin: 0;
       color: var(--muted);
-      font-size: 13px;
       line-height: 1.45;
-      white-space: pre-line;
     }
 
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 999px;
+    /* Panel + generator layout */
+    .panel{
       border: 1px solid var(--border);
-      background: rgba(10,12,16,0.55);
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-      height: fit-content;
-    }
-
-    .dot{
-      width: 8px; height: 8px;
-      border-radius: 999px;
-      background: rgba(165,220,255,0.95);
-      box-shadow: 0 0 0 3px rgba(165,220,255,0.15);
-    }
-
-    .card{
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: calc(var(--radius) + 2px);
-      background: linear-gradient(180deg, var(--panel), var(--panel2));
-      box-shadow: 0 24px 80px rgba(0,0,0,0.65);
+      background: var(--panel);
+      border-radius: var(--radius);
       padding: 16px;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(6px);
+    }
+    .panel-title{
+      margin: 0 0 6px;
+      font-size: 16px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .panel-subtitle{
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.45;
     }
 
-    .row3{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
+    .grid{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 14px;
-      margin-bottom: 14px;
     }
-    @media (max-width: 900px){ .row3{ grid-template-columns: 1fr; } }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+    }
 
-    label{
-      display:block;
-      font-size: 11px;
-      color: var(--muted2);
-      margin: 0 0 7px;
-      letter-spacing: 0.7px;
+    .controls{ display: grid; gap: 12px; }
+
+    .field{ display: grid; gap: 6px; }
+    .label{
+      font-size: 12px;
+      letter-spacing: .14em;
+      opacity: .9;
       text-transform: uppercase;
     }
 
-    select, input, textarea{
+    .select, .textarea{
       width: 100%;
-      padding: 12px 12px;
-      border-radius: var(--radius2);
+      border-radius: 12px;
       border: 1px solid var(--border);
-      background: rgba(10,12,16,0.55);
+      padding: 10px 12px;
+      background: rgba(0,0,0,.35);
       color: var(--text);
       outline: none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     }
-    select:focus, input:focus, textarea:focus{
-      border-color: rgba(165,220,255,0.55);
-      box-shadow: 0 0 0 4px rgba(165,220,255,0.12);
-    }
-
-    textarea{
-      height: 220px;
-      resize: vertical;
-      line-height: 1.35;
+    .select:focus, .textarea:focus{
+      border-color: rgba(255,255,255,.22);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.05);
     }
 
-    .mono{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 12.5px;
-    }
-
-    .actions{
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    button{
-      width:auto;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: linear-gradient(180deg, rgba(24,28,34,0.85), rgba(10,12,16,0.75));
-      color: var(--text);
-      cursor:pointer;
-      transition: transform 120ms ease, border-color 120ms ease, filter 120ms ease;
-    }
-    button:hover{
-      transform: translateY(-1px);
-      border-color: rgba(165,220,255,0.55);
-      filter: brightness(1.12);
-    }
-    button:active{ transform: translateY(0px); }
-
-    .small{
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 8px;
-      line-height: 1.4;
-    }
-
-    .classbar{
-      display:flex;
-      justify-content: space-between;
-      align-items:center;
-      gap: 12px;
+    .row{ display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .btn{
+      border-radius: 12px;
+      border: 1px solid var(--border2);
+      background: rgba(255,255,255,.06);
       padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(10,12,16,0.55);
-      margin: 10px 0 8px;
-      font-size: 11px;
-      letter-spacing: 1.1px;
+      cursor: pointer;
+      color: var(--text);
+      letter-spacing: .08em;
       text-transform: uppercase;
-      color: rgba(245,246,250,0.75);
+      font-size: 12px;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn.ghost{ background: transparent; opacity: .9; }
+
+    .hint{ margin: 10px 0 0; color: var(--muted); min-height: 18px; }
+    .divider{
+      height: 1px;
+      background: rgba(255,255,255,.08);
+      margin: 14px 0;
+    }
+    .footer{
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
     }
   </style>
 </head>
 
-<body>
-  <div class="topstrip">⚠ CLASSIFIED • NATIONAL ANOMALY FIELD OFFICE • EYES ONLY • LEVEL 4 CLEARANCE REQUIRED</div>
-  <div class="crt"></div>
-  <div class="watermark">NAFO ARCHIVE</div>
-
+<body class="scanlines">
   <div class="wrap">
-    <header>
-      <div class="titleblock">
-        <h1>National Anomaly Field Office</h1>
-        <p class="sub">Internal Field Documentation Interface
-Status: Officially Unacknowledged</p>
-      </div>
-      <div class="badge"><span class="dot"></span> SIGNAL: STABLE • ARCHIVE: OPEN</div>
-    </header>
-
-    <div class="card">
-      <!-- NEW CLEAN HIERARCHY: Classification → Creature → Location -->
-      <div class="row3">
-        <div>
-          <label>Classification</label>
-          <select id="classification"></select>
-        </div>
-
-        <div>
-          <label>Creature / Entity</label>
-          <select id="creature"></select>
-          <div class="small" id="creatureHint"></div>
-        </div>
-
-        <div>
-          <label>Location / Setting</label>
-          <select id="location">
-            <option>mist-covered Blue Ridge forest clearing</option>
-            <option>dark Atlantic tide pools on a rocky shoreline</option>
-            <option>fog-choked lighthouse approach road</option>
-            <option>abandoned industrial waterfront</option>
-            <option>empty motel corridor under fluorescents</option>
-            <option>closed shopping mall atrium, rain on skylight</option>
-            <option>moonlit bog with peat pools</option>
-            <option>quiet mountain rest stop at night</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Atmosphere comes before camera stuff -->
-      <div class="row3">
-        <div>
-          <label>Atmosphere</label>
-          <select id="atmosphere">
-            <option>heavy fog</option>
-            <option>steady rain</option>
-            <option>thunderstorm in the distance</option>
-            <option>coastal mist and salt spray</option>
-            <option>overcast twilight</option>
-            <option>moonlit night</option>
-            <option>snow flurries</option>
-            <option>fluorescent hum</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Behavior</label>
-          <select id="behavior">
-            <option>standing motionless</option>
-            <option>slowly emerging</option>
-            <option>turning toward camera</option>
-            <option>passing through frame</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Camera / Composition</label>
-          <select id="camera">
-            <option>static documentary framing, centered subject</option>
-            <option>handheld field footage, imperfect focus</option>
-            <option>telephoto compression, distant observation</option>
-            <option>wide shot, subject small against environment</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row3">
-        <div>
-          <label>Transmission Type</label>
-          <select id="transmission">
-            <option>classified field report segment</option>
-            <option>containment briefing excerpt</option>
-            <option>restricted archival broadcast</option>
-            <option>intercepted maritime anomaly transmission</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Year</label>
-          <select id="year">
-            <option>1971</option><option>1972</option><option>1973</option><option selected>1974</option>
-            <option>1975</option><option>1976</option><option>1977</option><option>1978</option><option>1979</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Aspect Ratio</label>
-          <input id="ar" value="32:9" />
-        </div>
-      </div>
-
-      <div class="row3">
-        <div>
-          <label>Chaos</label>
-          <select id="chaos">
-            <option>6</option><option selected>9</option><option>11</option><option>13</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Extra Notes (optional)</label>
-          <input id="notes" placeholder="e.g., timecode burn-in, station watermark, clear silhouette" />
-        </div>
-
-        <div>
-          <label>Subject Lock</label>
-          <select id="lock">
-            <option value="normal" selected>Normal</option>
-            <option value="strong">Strong</option>
-            <option value="max">Max</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="classbar">
-        <span>FIELD REPORT GENERATOR</span>
-        <span class="mono">ARCHIVE NODE 32</span>
-      </div>
-
-      <label>Generated Prompt</label>
-      <textarea id="output" class="mono" readonly></textarea>
-
-      <div class="actions">
-        <button id="copy">Copy</button>
-        <button id="randomize">Randomize</button>
-      </div>
-
-      <div class="small">Classification changes the Creature list automatically.</div>
+    <div class="classbar">
+      <span>CLASSIFIED • FIELD REPORT</span>
+      <span class="mono">ARCHIVE NODE 32</span>
     </div>
+
+    <div class="titleblock">
+      <h1 class="mono">National Anomaly Field Office</h1>
+      <p class="mono">NAFO Style Prompt Generator • officially denied</p>
+    </div>
+
+    <section class="panel" id="prompt-generator">
+      <h2 class="panel-title mono">Prompt Composer</h2>
+      <p class="panel-subtitle mono">Classification → Creature → (Variant) → Location → Atmosphere → Capture Type</p>
+
+      <div class="grid">
+        <!-- Left: Controls -->
+        <div class="controls" id="controls"></div>
+
+        <!-- Right: Output -->
+        <div class="output">
+          <label class="label mono" for="finalPrompt">FINAL PROMPT</label>
+          <textarea id="finalPrompt" class="textarea mono" rows="12" readonly></textarea>
+
+          <div class="row">
+            <button class="btn mono" id="copyBtn" type="button">Copy</button>
+            <button class="btn ghost mono" id="resetBtn" type="button">Reset</button>
+          </div>
+
+          <p class="hint mono" id="copyHint" aria-live="polite"></p>
+
+          <div class="divider"></div>
+          <div class="footer mono">NAFO // INTERNAL TOOLING // DO NOT DISTRIBUTE</div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script>
-    // --------- ELI5 EXPLANATION ----------
-    // We have a "map" that says:
-    // If you pick Cryptid -> show cryptid creatures.
-    // If you pick Fae -> show fae creatures.
-    // Then we rebuild the prompt every time you change something.
+    (() => {
+      // ===== Data model =====
+      const DATA = {
+        classifications: [
+          { value: "cryptid", label: "Cryptid" },
+          { value: "fae", label: "Fae" },
+          { value: "apparition", label: "Apparition" },
+          { value: "aberration", label: "Aberration" },
+          { value: "entity", label: "Unknown Entity" },
+          { value: "artifact", label: "Anomalous Artifact" }
+        ],
 
-    const el = (id) => document.getElementById(id);
+        // Creature lists by classification
+        creatures: {
+          cryptid: [
+            { value: "mothman", label: "Mothman" },
+            { value: "jersey_devil", label: "Jersey Devil" },
+            { value: "bigfoot", label: "Bigfoot / Sasquatch" },
+            { value: "chupacabra", label: "Chupacabra" },
+            { value: "dover_demon", label: "Dover Demon" },
+            { value: "flatwoods", label: "Flatwoods Monster" }
+          ],
+          fae: [
+            { value: "wild_hunt", label: "The Wild Hunt" },
+            { value: "leprechaun", label: "Leprechaun" },
+            { value: "selkie", label: "Selkie" },
+            { value: "redcap", label: "Redcap" },
+            { value: "brownie", label: "Brownie" },
+            { value: "banshee", label: "Banshee" }
+          ],
+          apparition: [
+            { value: "woman_in_white", label: "Woman in White" },
+            { value: "black_dog", label: "Black Dog" },
+            { value: "headless_rider", label: "Headless Rider" },
+            { value: "poltergeist", label: "Poltergeist" },
+            { value: "shadow_person", label: "Shadow Person" }
+          ],
+          aberration: [
+            { value: "fleshgait", label: "Fleshgait" },
+            { value: "mimic", label: "Mimic" },
+            { value: "crawler", label: "Pale Crawler" },
+            { value: "things_that_knock", label: "Things That Knock" }
+          ],
+          entity: [
+            { value: "unknown_biologic", label: "Unknown Biologic" },
+            { value: "unknown_humanoid", label: "Unknown Humanoid" },
+            { value: "unknown_aerial", label: "Unknown Aerial" },
+            { value: "unknown_aquatic", label: "Unknown Aquatic" }
+          ],
+          artifact: [
+            { value: "cursed_relic", label: "Cursed Relic" },
+            { value: "impossible_device", label: "Impossible Device" },
+            { value: "forbidden_text", label: "Forbidden Text" },
+            { value: "anomalous_signal", label: "Anomalous Signal Source" }
+          ]
+        },
 
-    const CREATURES_BY_CLASS = {
-      "Cryptid": [
-        "Jersey Devil",
-        "Mothman",
-        "Bigfoot",
-        "Chupacabra",
-        "Flatwoods Monster",
-        "Dogman",
-        "Skunk Ape",
-        "Thunderbird"
-      ],
-      "Fae": [
-        "The Wild Hunt",
-        "Leprechaun",
-        "Banshee",
-        "Redcap",
-        "Selkie",
-        "Púca",
-        "Brownie",
-        "Dullahan"
-      ],
-      "Maritime Entity": [
-        "Kelpie",
-        "Kraken",
-        "Sea Serpent",
-        "Lighthouse Wraith",
-        "Abyssal Leviathan",
-        "Sargassum Thing"
-      ],
-      "Interdimensional": [
-        "Geometric Emissary",
-        "Mirror Visitor",
-        "Doorway Figure",
-        "Angle-Walker"
-      ],
-      "Occult Construct": [
-        "Sigil-Made Sentinel",
-        "Wax Effigy",
-        "Bone Golem",
-        "Paper Familiar"
-      ],
-      "Biological Anomaly": [
-        "Fungal Humanoid",
-        "Spore Host",
-        "Chitinous Biped",
-        "Blind Burrower"
-      ],
-      "Environmental Mimic": [
-        "Living Shadow",
-        "Fog Imitator",
-        "Tree-Line Watcher",
-        "Static Shambler"
-      ],
-      "Unknown": [
-        "Unidentified Bipedal Organism",
-        "Unidentified Winged Entity",
-        "Unclassified Presence",
-        "Unknown Subject"
-      ]
-    };
+        // Optional variants only for SOME creatures
+        variants: {
+          mothman: [
+            { value: "red_eyes", label: "Red-Eyed Silhouette" },
+            { value: "ash_wings", label: "Ash-Dusted Wings" },
+            { value: "bridge_omen", label: "Bridge Omen" }
+          ],
+          jersey_devil: [
+            { value: "pine_barrens", label: "Pine Barrens Stalker" },
+            { value: "hoofprints", label: "Hoofprint Trail" }
+          ],
+          wild_hunt: [
+            { value: "horned_riders", label: "Horned Riders" },
+            { value: "hounds", label: "Black Hounds" },
+            { value: "winter_procession", label: "Winter Procession" }
+          ]
+        },
 
-    function fillSelect(selectEl, options, keepFirst = false) {
-      const current = selectEl.value;
-      selectEl.innerHTML = "";
-      options.forEach((txt) => {
-        const opt = document.createElement("option");
-        opt.textContent = txt;
-        selectEl.appendChild(opt);
-      });
+        locations: [
+          { value: "pine_forest", label: "Pine forest" },
+          { value: "abandoned_mill", label: "Abandoned mill" },
+          { value: "rural_road", label: "Rural road" },
+          { value: "swamp", label: "Swamp" },
+          { value: "coastal_cliffs", label: "Coastal cliffs" },
+          { value: "suburban_woods", label: "Suburban treeline" },
+          { value: "derelict_town", label: "Derelict town" }
+        ],
 
-      // try to keep what you had selected if it still exists
-      if (keepFirst) return;
-      const stillExists = options.includes(current);
-      if (stillExists) selectEl.value = current;
-    }
+        atmospheres: [
+          { value: "fog", label: "Fog" },
+          { value: "thunderstorm", label: "Thunderstorm" },
+          { value: "heavy_rain", label: "Heavy rain" },
+          { value: "snow", label: "Snow" },
+          { value: "low_mist", label: "Low ground mist" },
+          { value: "moonless_night", label: "Moonless night" },
+          { value: "sodium_vapor", label: "Sodium-vapor streetlight haze" }
+        ],
 
-    function onClassificationChange() {
-      const cls = el("classification").value;
-      const list = CREATURES_BY_CLASS[cls] || CREATURES_BY_CLASS["Unknown"];
-      fillSelect(el("creature"), list);
+        cameras: [
+          { value: "35mm", label: "35mm film photo" },
+          { value: "polaroid", label: "Polaroid" },
+          { value: "cctv", label: "CCTV still" },
+          { value: "handheld_video", label: "Handheld camcorder frame" },
+          { value: "thermal", label: "Thermal imaging" },
+          { value: "night_vision", label: "Night vision" }
+        ]
+      };
 
-      el("creatureHint").textContent = (cls === "Unknown")
-        ? "Classification is Unknown: broad placeholder subjects."
-        : `Loaded ${list.length} ${cls} subjects.`;
+      // ===== State =====
+      const state = {
+        classification: "",
+        creature: "",
+        variant: "",
+        location: "",
+        atmosphere: "",
+        camera: ""
+      };
 
-      build();
-    }
+      // ===== DOM =====
+      const controls = document.getElementById("controls");
+      const finalPrompt = document.getElementById("finalPrompt");
+      const copyBtn = document.getElementById("copyBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const copyHint = document.getElementById("copyHint");
 
-    function build() {
-      const cls = el("classification").value;
-      const creature = el("creature").value;
-      const location = el("location").value;
-      const atmosphere = el("atmosphere").value;
-      const behavior = el("behavior").value;
-      const camera = el("camera").value;
-      const transmission = el("transmission").value;
-      const year = el("year").value;
-      const ar = (el("ar").value.trim() || "32:9");
-      const chaos = el("chaos").value;
-      const notes = el("notes").value.trim();
-      const lock = el("lock").value;
-
-      let subjectLead = `${cls}: ${creature}`;
-      let lockTail = "";
-
-      if (lock === "strong") {
-        subjectLead = `${subjectLead}, ${subjectLead}`;
-      } else if (lock === "max") {
-        subjectLead = `${subjectLead}, ${subjectLead}`;
-        lockTail = ", camera locked on subject, clear silhouette, subject centered";
+      // ===== helpers =====
+      function el(tag, attrs = {}, children = []) {
+        const node = document.createElement(tag);
+        Object.entries(attrs).forEach(([k, v]) => {
+          if (k === "class") node.className = v;
+          else if (k === "for") node.htmlFor = v;
+          else node.setAttribute(k, v);
+        });
+        children.forEach(c => node.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+        return node;
       }
 
-      const prompt =
-`${subjectLead}, ${behavior}, standing in ${location}, atmosphere: ${atmosphere}, ${camera}, ${transmission} (${year}), shot on degraded 16mm film transferred to unstable analog VHS, desaturated palette, soft bloom, film grain, faint scan lines, minor tracking distortion, natural lighting only, biological realism, matte textures, solemn institutional broadcast tone, archival anomaly documentation${lockTail}${notes ? ", " + notes : ""} --ar ${ar} --v 7 --style raw --chaos ${chaos}`;
+      function makeSelect({ id, label, options, placeholder = "Select…", value, onChange }) {
+        const select = el("select", { id, class: "select mono" });
+        select.appendChild(el("option", { value: "" }, [placeholder]));
+        options.forEach(opt => {
+          select.appendChild(el("option", { value: opt.value }, [opt.label]));
+        });
+        select.value = value || "";
+        select.addEventListener("change", (e) => onChange(e.target.value));
 
-      el("output").value = prompt;
-    }
+        return el("div", { class: "field" }, [
+          el("label", { class: "label mono", for: id }, [label]),
+          select
+        ]);
+      }
 
-    function pickRandom(id) {
-      const s = el(id);
-      s.selectedIndex = Math.floor(Math.random() * s.options.length);
-    }
+      function clearBelow(keys) {
+        keys.forEach(k => state[k] = "");
+      }
 
-    // ---- init ----
-    const classList = Object.keys(CREATURES_BY_CLASS);
-    fillSelect(el("classification"), classList);
-    onClassificationChange(); // fills creature list + builds prompt
+      function labelFor(list, value) {
+        const item = (list || []).find(x => x.value === value);
+        return item ? item.label : "";
+      }
 
-    // rebuild prompt when anything changes
-    ["creature","location","atmosphere","behavior","camera","transmission","year","ar","chaos","notes","lock"]
-      .forEach(id => {
-        el(id).addEventListener("input", build);
-        el(id).addEventListener("change", build);
-      });
+      // ===== Render =====
+      function renderControls() {
+        controls.innerHTML = "";
 
-    // classification is special: it rebuilds creature options
-    el("classification").addEventListener("change", onClassificationChange);
+        // 1) Classification
+        controls.appendChild(makeSelect({
+          id: "classificationSelect",
+          label: "CLASSIFICATION",
+          options: DATA.classifications,
+          placeholder: "Select classification…",
+          value: state.classification,
+          onChange: (val) => {
+            state.classification = val;
+            clearBelow(["creature", "variant", "location", "atmosphere", "camera"]);
+            renderControls();
+            renderPrompt();
+          }
+        }));
 
-    el("copy").addEventListener("click", async () => {
-      await navigator.clipboard.writeText(el("output").value);
-      el("copy").textContent = "Copied!";
-      setTimeout(() => el("copy").textContent = "Copy", 900);
-    });
+        // 2) Creature
+        if (state.classification) {
+          const creatureOptions = DATA.creatures[state.classification] || [];
+          controls.appendChild(makeSelect({
+            id: "creatureSelect",
+            label: "CREATURE",
+            options: creatureOptions,
+            placeholder: "Select creature…",
+            value: state.creature,
+            onChange: (val) => {
+              state.creature = val;
+              clearBelow(["variant", "location", "atmosphere", "camera"]);
+              renderControls();
+              renderPrompt();
+            }
+          }));
+        }
 
-    el("randomize").addEventListener("click", () => {
-      pickRandom("classification");
-      onClassificationChange(); // refresh creature list for that class
-      pickRandom("creature");
-      ["location","atmosphere","behavior","camera","transmission","year","chaos"].forEach(pickRandom);
-      build();
-    });
+        // 3) Variant (optional)
+        const variantOptions = state.creature ? (DATA.variants[state.creature] || []) : [];
+        if (state.creature && variantOptions.length) {
+          controls.appendChild(makeSelect({
+            id: "variantSelect",
+            label: "VARIANT",
+            options: variantOptions,
+            placeholder: "Select variant…",
+            value: state.variant,
+            onChange: (val) => {
+              state.variant = val;
+              renderPrompt();
+            }
+          }));
+        }
+
+        // 4) Location, 5) Atmosphere, 6) Camera (only after creature chosen)
+        if (state.creature) {
+          controls.appendChild(makeSelect({
+            id: "locationSelect",
+            label: "LOCATION",
+            options: DATA.locations,
+            placeholder: "Select location…",
+            value: state.location,
+            onChange: (val) => {
+              state.location = val;
+              renderPrompt();
+            }
+          }));
+
+          controls.appendChild(makeSelect({
+            id: "atmosphereSelect",
+            label: "ATMOSPHERE",
+            options: DATA.atmospheres,
+            placeholder: "Select atmosphere…",
+            value: state.atmosphere,
+            onChange: (val) => {
+              state.atmosphere = val;
+              renderPrompt();
+            }
+          }));
+
+          controls.appendChild(makeSelect({
+            id: "cameraSelect",
+            label: "CAPTURE TYPE",
+            options: DATA.cameras,
+            placeholder: "Select capture type…",
+            value: state.camera,
+            onChange: (val) => {
+              state.camera = val;
+              renderPrompt();
+            }
+          }));
+        }
+      }
+
+      function renderPrompt() {
+        const parts = [];
+
+        // NAFO flavor base
+        parts.push("NAFO FIELD REPORT STYLE");
+        parts.push("classified archive aesthetic, officially denied");
+
+        if (state.classification) {
+          parts.push(`classification: ${labelFor(DATA.classifications, state.classification)}`);
+        }
+
+        if (state.creature) {
+          const cList = DATA.creatures[state.classification] || [];
+          parts.push(`subject: ${labelFor(cList, state.creature)}`);
+        }
+
+        if (state.variant) {
+          parts.push(`variant: ${labelFor(DATA.variants[state.creature], state.variant)}`);
+        }
+
+        if (state.location) parts.push(`location: ${labelFor(DATA.locations, state.location)}`);
+        if (state.atmosphere) parts.push(`atmosphere: ${labelFor(DATA.atmospheres, state.atmosphere)}`);
+        if (state.camera) parts.push(`capture: ${labelFor(DATA.cameras, state.camera)}`);
+
+        // Subtle “CRT archive” cues (no nightclub flicker)
+        parts.push("subtle scanlines, low contrast, archival grain, timeworn documentation, restrained horror");
+
+        finalPrompt.value = parts.join(", ");
+      }
+
+      async function copyPrompt() {
+        copyHint.textContent = "";
+        const text = finalPrompt.value;
+
+        try {
+          await navigator.clipboard.writeText(text);
+          copyHint.textContent = "Copied to clipboard.";
+        } catch (e) {
+          // Fallback
+          finalPrompt.focus();
+          finalPrompt.select();
+          document.execCommand("copy");
+          copyHint.textContent = "Copied (fallback).";
+        }
+
+        setTimeout(() => (copyHint.textContent = ""), 1400);
+      }
+
+      function resetAll() {
+        state.classification = "";
+        state.creature = "";
+        state.variant = "";
+        state.location = "";
+        state.atmosphere = "";
+        state.camera = "";
+        copyHint.textContent = "";
+        renderControls();
+        renderPrompt();
+      }
+
+      copyBtn.addEventListener("click", copyPrompt);
+      resetBtn.addEventListener("click", resetAll);
+
+      // Init
+      renderControls();
+      renderPrompt();
+    })();
   </script>
 </body>
 </html>
