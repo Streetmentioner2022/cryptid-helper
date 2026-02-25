@@ -17,7 +17,6 @@
       --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       --radius: 16px;
     }
-
     *{ box-sizing: border-box; }
     html, body { height: 100%; }
     body{
@@ -30,6 +29,7 @@
       overflow-x: hidden;
     }
 
+    /* Subtle CRT scanlines + noise */
     .scanlines::before{
       content:"";
       position: fixed;
@@ -58,7 +58,6 @@
     }
 
     .wrap{ max-width: 1100px; margin: 0 auto; padding: 18px 16px 40px; }
-
     .classbar{
       display: flex; justify-content: space-between; align-items: center; gap: 10px;
       border: 1px solid var(--border);
@@ -210,7 +209,7 @@
 
     <section class="panel" id="prompt-generator">
       <h2 class="panel-title mono">Prompt Composer</h2>
-      <p class="panel-subtitle mono">Evidence-first ordering • creature often absent/obscured • MidJourney V7</p>
+      <p class="panel-subtitle mono">Creature-first + higher variability • MidJourney V7</p>
 
       <div class="grid">
         <div class="controls" id="controls"></div>
@@ -222,6 +221,7 @@
           <div class="row">
             <button class="btn mono" id="copyBtn" type="button">Copy</button>
             <button class="btn ghost mono" id="resetBtn" type="button">Reset</button>
+            <button class="btn mono" id="randomBtn" type="button">Randomize Wording</button>
           </div>
 
           <p class="hint mono" id="copyHint" aria-live="polite"></p>
@@ -236,6 +236,35 @@
 
   <script>
     (() => {
+      // --------- small deterministic PRNG (so "Randomize" can vary wording) ----------
+      function xfnv1a(str){
+        let h = 2166136261 >>> 0;
+        for (let i=0;i<str.length;i++){
+          h ^= str.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+      }
+      function mulberry32(a){
+        return function(){
+          let t = a += 0x6D2B79F5;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function pick(rng, arr){
+        return arr[Math.floor(rng() * arr.length)];
+      }
+      function sampleN(rng, arr, n){
+        const copy = arr.slice();
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(rng() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy.slice(0, Math.min(n, copy.length));
+      }
+
       const DATA = {
         folkloreIntensity: [
           { value: "0", label: "0 — Mundane (realism)" },
@@ -248,15 +277,15 @@
           { value: "questionable", label: "Questionable (ambiguous)" },
           { value: "fabricated", label: "Fabricated (staged)" }
         ],
-
-        // NEW: evidence-first subject control
-        evidence: [
-          { value: "none", label: "None — no subject visible" },
-          { value: "trace", label: "Trace — footprints / damage / disturbed brush" },
-          { value: "implied", label: "Implied — shadow / reflection / shape in fog" },
-          { value: "distant", label: "Distant — tiny silhouette on horizon" },
-          { value: "partial", label: "Partial — obscured / frame cut-off" },
-          { value: "clear", label: "Clear — full view (rare)" }
+        variation: [
+          { value: "low", label: "Low (steady wording)" },
+          { value: "med", label: "Medium (more variety)" },
+          { value: "high", label: "High (lots of variety)" }
+        ],
+        visibility: [
+          { value: "clear", label: "Clear (cryptid visible)" },
+          { value: "partial", label: "Partial (obscured)" },
+          { value: "distant", label: "Distant (far / horizon)" }
         ],
 
         cameras: [
@@ -267,7 +296,6 @@
           { value: "thermal", label: "Thermal imaging" },
           { value: "night_vision", label: "Night vision" }
         ],
-
         locations: [
           { value: "pine_forest", label: "Pine forest" },
           { value: "abandoned_mill", label: "Abandoned mill" },
@@ -277,7 +305,6 @@
           { value: "suburban_woods", label: "Suburban treeline" },
           { value: "derelict_town", label: "Derelict town" }
         ],
-
         atmospheres: [
           { value: "fog", label: "Fog" },
           { value: "thunderstorm", label: "Thunderstorm" },
@@ -375,113 +402,133 @@
         ]
       };
 
-      const DEFAULT_STYLE_BASE = [
-        "found footage documentary photograph",
-        "accidental folklore documentation",
-        "imperfect framing, unsteady composition",
-        "natural low light exposure",
-        "no cinematic polish"
-      ];
-
+      // Camera overrides (still your option 1)
       const CAMERA_PROFILES = {
         "35mm": [
-          "found footage documentary photograph",
-          "accidental folklore documentation",
           "authentic 35mm film photograph",
           "visible analog film grain",
-          "slight underexposure, imperfect focus",
-          "imperfect framing, candid moment",
-          "no cinematic polish"
+          "slight underexposure, imperfect focus"
         ],
         "polaroid": [
-          "found footage documentary photograph",
-          "accidental folklore documentation",
           "polaroid instant photo",
           "soft focus, uneven exposure",
-          "chemical artifacts, faded color cast",
-          "handheld snapshot composition",
-          "no cinematic polish"
+          "chemical artifacts, faded color cast"
         ],
         "cctv": [
           "surveillance camera still",
-          "paranormal incident documentation",
-          "fixed wide angle, unflattering perspective",
           "low resolution, compression artifacts",
-          "timestamped security footage aesthetic",
-          "harsh overhead lighting or dim ambient light"
+          "timestamped security footage aesthetic"
         ],
         "handheld_video": [
           "found footage camcorder frame",
-          "accidental folklore documentation",
-          "handheld documentary video still",
           "motion blur, rolling shutter artifacts",
-          "imperfect focus, low light noise",
-          "no cinematic polish"
+          "low light noise"
         ],
         "thermal": [
           "thermal imaging still",
-          "incident documentation",
           "heat signature contrast, sensor noise",
-          "low detail edges, utilitarian capture",
-          "unsettling ambiguity, non-cinematic"
+          "utilitarian capture"
         ],
         "night_vision": [
           "night vision footage still",
-          "incident documentation",
           "infrared glow, high noise",
-          "crushed blacks, blown highlights",
-          "unsteady handheld framing",
-          "non-cinematic, purely observational"
+          "crushed blacks, blown highlights"
         ]
       };
 
+      // Dial mappings
       const FOLKLORE_MAP = {
         "0": { s: 50,  w: 0   },
         "1": { s: 100, w: 40  },
         "2": { s: 200, w: 120 },
         "3": { s: 350, w: 300 }
       };
-
       const CREDIBILITY_MAP = {
         believable:   { chaos: 5,  tag: "documentary authenticity, plausible event" },
         questionable: { chaos: 15, tag: "ambiguous evidence, unclear subject" },
         fabricated:   { chaos: 30, tag: "possible staged footage, uncanny presentation" }
       };
 
-      const EVIDENCE_TAGS = {
-        none:    "no subject visible, empty frame, unsettling absence",
-        trace:   "only traces visible, disturbed brush, footprints, broken branches",
-        implied: "implied presence, shadow in fog, reflection anomaly, half-seen shape",
-        distant: "distant silhouette on horizon, barely perceptible figure",
-        partial: "partial glimpse, obscured by trees, frame cut-off, motion blur",
-        clear:   "clear subject visibility, full figure present"
+      // Wording banks (to reduce repetition)
+      const OPENERS = [
+        "found footage documentary photograph",
+        "accidental field documentation photo",
+        "amateur evidence photo",
+        "unplanned encounter documentation",
+        "candid incident photograph"
+      ];
+      const COMPOSITION = [
+        "imperfect framing, unsteady composition",
+        "crooked horizon, rushed framing",
+        "candid composition, awkward angle",
+        "off-center subject, accidental framing",
+        "handheld shot, uneven composition"
+      ];
+      const TONE = [
+        "restrained horror",
+        "quiet dread",
+        "uneasy stillness",
+        "ominous calm",
+        "unsettling realism"
+      ];
+      const ARTIFACTS = [
+        "subtle scanlines",
+        "archival wear",
+        "minor lens grime",
+        "dust specks on film",
+        "edge vignetting",
+        "light leak",
+        "compression ringing"
+      ];
+      const MICRO_DETAILS = [
+        "breath visible in cold air",
+        "wind-blown branches",
+        "distant streetlight glow",
+        "wet ground reflections",
+        "insect specks near lens",
+        "mud on boots at frame edge",
+        "flash glare off wet leaves",
+        "camera strap shadow intruding"
+      ];
+
+      const VISIBILITY_TAGS = {
+        clear:  ["clearly visible in frame", "full subject visible", "subject visible, not obscured"],
+        partial:["partially obscured by trees", "partial glimpse, frame cut-off", "obscured by fog and motion blur"],
+        distant:["tiny figure on the horizon", "distant silhouette far away", "small subject in wide shot"]
       };
 
       const state = {
-        folklore: "1",
-        credibility: "questionable",
-
-        camera: "",
-        location: "",
-        atmosphere: "",
-        evidence: "distant",
-
-        classification: "",
+        // Creature-first
+        classification: "cryptid",
         creature: "",
         variant: "",
 
+        // Dials
+        folklore: "1",
+        credibility: "questionable",
+        variation: "med",
+        visibility: "clear",
+
+        // Scene/capture
+        camera: "35mm",
+        location: "",
+        atmosphere: "",
+
+        // MJ params
         aspectRatio: "16:9",
         chaos: "10",
         raw: false,
         quality: "1",
 
-        chaosLockedByUser: false
+        chaosLockedByUser: false,
+        seed: 1
       };
 
       const controls = document.getElementById("controls");
       const finalPrompt = document.getElementById("finalPrompt");
       const copyBtn = document.getElementById("copyBtn");
       const resetBtn = document.getElementById("resetBtn");
+      const randomBtn = document.getElementById("randomBtn");
       const copyHint = document.getElementById("copyHint");
       const statusPill = document.getElementById("statusPill");
 
@@ -552,14 +599,66 @@
 
         const c = CREDIBILITY_MAP[state.credibility] || CREDIBILITY_MAP.questionable;
         state._credTag = c.tag;
-
         if (!state.chaosLockedByUser) state.chaos = String(c.chaos);
       }
 
       function renderControls() {
         controls.innerHTML = "";
 
-        // 1) Dials
+        // Creature FIRST (as you requested)
+        controls.appendChild(makeSelect({
+          id: "classificationSelect",
+          label: "CLASSIFICATION",
+          options: DATA.classifications,
+          placeholder: "Select classification…",
+          value: state.classification,
+          onChange: (val) => {
+            state.classification = val || "";
+            clearBelow(["creature", "variant"]);
+            renderControls();
+            renderPrompt();
+          }
+        }));
+
+        if (state.classification) {
+          controls.appendChild(makeSelect({
+            id: "creatureSelect",
+            label: "CREATURE",
+            options: DATA.creatures[state.classification] || [],
+            placeholder: "Select creature…",
+            value: state.creature,
+            onChange: (val) => {
+              state.creature = val || "";
+              clearBelow(["variant"]);
+              renderControls();
+              renderPrompt();
+            }
+          }));
+        }
+
+        const variantOptions = state.creature ? (DATA.variants[state.creature] || []) : [];
+        if (state.creature && variantOptions.length) {
+          controls.appendChild(makeSelect({
+            id: "variantSelect",
+            label: "VARIANT",
+            options: variantOptions,
+            placeholder: "Select variant…",
+            value: state.variant,
+            onChange: (val) => { state.variant = val || ""; renderPrompt(); }
+          }));
+        }
+
+        // Visibility (so you can actually see cryptids)
+        controls.appendChild(makeSelect({
+          id: "visibilitySelect",
+          label: "CREATURE VISIBILITY",
+          options: DATA.visibility,
+          placeholder: "Select visibility…",
+          value: state.visibility,
+          onChange: (val) => { state.visibility = val || "clear"; renderPrompt(); }
+        }));
+
+        // Dials + variability
         controls.appendChild(makeSelect({
           id: "folkloreSelect",
           label: "FOLKLORE INTENSITY",
@@ -578,24 +677,32 @@
           onChange: (val) => { state.credibility = val || "questionable"; renderPrompt(); }
         }));
 
-        // 2) Capture Type early
+        controls.appendChild(makeSelect({
+          id: "variationSelect",
+          label: "VARIATION",
+          options: DATA.variation,
+          placeholder: "Select variation…",
+          value: state.variation,
+          onChange: (val) => { state.variation = val || "med"; renderPrompt(); }
+        }));
+
+        // Scene/capture
         controls.appendChild(makeSelect({
           id: "cameraSelect",
           label: "CAPTURE TYPE (OVERRIDES STYLE)",
           options: DATA.cameras,
           placeholder: "Select capture type…",
           value: state.camera,
-          onChange: (val) => { state.camera = val; renderPrompt(); }
+          onChange: (val) => { state.camera = val || ""; renderPrompt(); }
         }));
 
-        // 3) Location + Atmosphere
         controls.appendChild(makeSelect({
           id: "locationSelect",
           label: "LOCATION",
           options: DATA.locations,
           placeholder: "Select location…",
           value: state.location,
-          onChange: (val) => { state.location = val; renderPrompt(); }
+          onChange: (val) => { state.location = val || ""; renderPrompt(); }
         }));
 
         controls.appendChild(makeSelect({
@@ -604,71 +711,10 @@
           options: DATA.atmospheres,
           placeholder: "Select atmosphere…",
           value: state.atmosphere,
-          onChange: (val) => { state.atmosphere = val; renderPrompt(); }
+          onChange: (val) => { state.atmosphere = val || ""; renderPrompt(); }
         }));
 
-        // 4) Evidence level (key for your note)
-        controls.appendChild(makeSelect({
-          id: "evidenceSelect",
-          label: "EVIDENCE LEVEL",
-          options: DATA.evidence,
-          placeholder: "Select evidence…",
-          value: state.evidence,
-          onChange: (val) => { state.evidence = val || "distant"; renderControls(); renderPrompt(); }
-        }));
-
-        // 5) Creature as optional (only show if evidence is not "none" or "trace")
-        const showCreature = (state.evidence !== "none" && state.evidence !== "trace");
-        if (showCreature) {
-          controls.appendChild(makeSelect({
-            id: "classificationSelect",
-            label: "CLASSIFICATION (OPTIONAL)",
-            options: DATA.classifications,
-            placeholder: "Select classification…",
-            value: state.classification,
-            onChange: (val) => {
-              state.classification = val;
-              clearBelow(["creature", "variant"]);
-              renderControls();
-              renderPrompt();
-            }
-          }));
-
-          if (state.classification) {
-            controls.appendChild(makeSelect({
-              id: "creatureSelect",
-              label: "CREATURE (OPTIONAL)",
-              options: DATA.creatures[state.classification] || [],
-              placeholder: "Select creature…",
-              value: state.creature,
-              onChange: (val) => {
-                state.creature = val;
-                clearBelow(["variant"]);
-                renderControls();
-                renderPrompt();
-              }
-            }));
-          }
-
-          const variantOptions = state.creature ? (DATA.variants[state.creature] || []) : [];
-          if (state.creature && variantOptions.length) {
-            controls.appendChild(makeSelect({
-              id: "variantSelect",
-              label: "VARIANT (OPTIONAL)",
-              options: variantOptions,
-              placeholder: "Select variant…",
-              value: state.variant,
-              onChange: (val) => { state.variant = val; renderPrompt(); }
-            }));
-          }
-        } else {
-          // if evidence implies no creature selection, clear them
-          state.classification = "";
-          state.creature = "";
-          state.variant = "";
-        }
-
-        // 6) MJ Params
+        // MJ Params
         controls.appendChild(makeSelect({
           id: "aspectRatioSelect",
           label: "ASPECT RATIO (MJ --ar)",
@@ -712,47 +758,82 @@
       function renderPrompt() {
         applyDials();
 
+        // Seeded rng based on current selections + seed, so "Randomize" changes wording
+        const key = JSON.stringify({
+          seed: state.seed,
+          c: state.classification,
+          cr: state.creature,
+          v: state.variant,
+          vis: state.visibility,
+          fol: state.folklore,
+          cred: state.credibility,
+          var: state.variation,
+          cam: state.camera,
+          loc: state.location,
+          atm: state.atmosphere
+        });
+        const rng = mulberry32(xfnv1a(key));
+
         const parts = [];
 
-        const base = (state.camera && CAMERA_PROFILES[state.camera])
-          ? CAMERA_PROFILES[state.camera]
-          : DEFAULT_STYLE_BASE;
+        // --- CREATURE FIRST ---
+        let creatureLabel = "";
+        if (state.creature && state.classification) {
+          const cList = DATA.creatures[state.classification] || [];
+          creatureLabel = labelFor(cList, state.creature);
+        } else {
+          // If you really want cryptids always, you can remove this fallback.
+          creatureLabel = "cryptid";
+        }
 
-        base.forEach(s => parts.push(s));
+        const visPhrase = pick(rng, VISIBILITY_TAGS[state.visibility] || VISIBILITY_TAGS.clear);
 
+        parts.push(`${creatureLabel}`);
+        if (state.variant && state.creature) {
+          const vLabel = labelFor(DATA.variants[state.creature], state.variant);
+          parts.push(vLabel);
+        }
+        parts.push(visPhrase);
+
+        // --- STYLE / WORDING VARIATION ---
+        const variationLevel = state.variation;
+        const opener = pick(rng, OPENERS);
+        const comp = pick(rng, COMPOSITION);
+        const tone = pick(rng, TONE);
+
+        parts.push(opener);
+        parts.push(comp);
+
+        // Camera profile overrides (adds camera-specific text)
+        if (state.camera && CAMERA_PROFILES[state.camera]) {
+          const camBits = CAMERA_PROFILES[state.camera];
+          // low/med/high control how many camera bits we include
+          const camCount = (variationLevel === "low") ? 2 : (variationLevel === "med") ? 3 : 3;
+          sampleN(rng, camBits, camCount).forEach(s => parts.push(s));
+        }
+
+        // Credibility tag
         if (state._credTag) parts.push(state._credTag);
 
-        // Evidence language comes BEFORE creature
-        if (state.evidence) parts.push(EVIDENCE_TAGS[state.evidence] || "");
-
+        // Location/atmosphere next
         if (state.location) parts.push(`location: ${labelFor(DATA.locations, state.location)}`);
         if (state.atmosphere) parts.push(`atmosphere: ${labelFor(DATA.atmospheres, state.atmosphere)}`);
 
-        // Creature is conditional:
-        // - clear: include subject explicitly (if chosen)
-        // - distant/partial/implied: only mention if chosen, but keep it vague
-        const evidence = state.evidence;
+        // Artifacts: choose more when variation higher
+        const artCount = (variationLevel === "low") ? 2 : (variationLevel === "med") ? 3 : 4;
+        sampleN(rng, ARTIFACTS, artCount).forEach(s => parts.push(s));
 
-        if (state.creature && state.classification) {
-          const cList = DATA.creatures[state.classification] || [];
-          const creatureLabel = labelFor(cList, state.creature);
-
-          if (evidence === "clear") {
-            parts.push(`subject: ${creatureLabel}`);
-            if (state.variant) parts.push(`variant: ${labelFor(DATA.variants[state.creature], state.variant)}`);
-          } else if (evidence === "distant") {
-            parts.push(`possible distant figure: ${creatureLabel}`);
-          } else if (evidence === "partial") {
-            parts.push(`partial glimpse suggests: ${creatureLabel}`);
-          } else if (evidence === "implied") {
-            parts.push(`implied presence suggests: ${creatureLabel}`);
-          }
+        // Micro details: only on med/high to avoid always repeating
+        if (variationLevel !== "low") {
+          const microCount = (variationLevel === "med") ? 1 : 2;
+          sampleN(rng, MICRO_DETAILS, microCount).forEach(s => parts.push(s));
         }
 
-        parts.push("subtle scanlines, archival wear, restrained horror");
+        parts.push(tone);
 
         const descriptive = parts.filter(Boolean).join(", ");
 
+        // MJ params
         const params = [];
         params.push(`--ar ${state.aspectRatio || "16:9"}`);
 
@@ -761,7 +842,7 @@
 
         if (state.raw) params.push(`--raw`);
 
-        // dials always included (core instrument)
+        // dials always included (your “instrument”)
         params.push(`--s ${state._stylize}`);
         params.push(`--w ${state._weird}`);
 
@@ -788,27 +869,41 @@
       }
 
       function resetAll() {
-        state.folklore = "1";
-        state.credibility = "questionable";
-        state.camera = "";
-        state.location = "";
-        state.atmosphere = "";
-        state.evidence = "distant";
-        state.classification = "";
+        state.classification = "cryptid";
         state.creature = "";
         state.variant = "";
+        state.visibility = "clear";
+
+        state.folklore = "1";
+        state.credibility = "questionable";
+        state.variation = "med";
+
+        state.camera = "35mm";
+        state.location = "";
+        state.atmosphere = "";
+
         state.aspectRatio = "16:9";
         state.chaos = "10";
         state.raw = false;
         state.quality = "1";
+
         state.chaosLockedByUser = false;
+        state.seed = 1;
+
         copyHint.textContent = "";
         renderControls();
         renderPrompt();
       }
 
+      function bumpSeed() {
+        // changes wording without changing selections
+        state.seed = (state.seed + 1) % 1000000;
+        renderPrompt();
+      }
+
       copyBtn.addEventListener("click", copyPrompt);
       resetBtn.addEventListener("click", resetAll);
+      randomBtn.addEventListener("click", bumpSeed);
 
       renderControls();
       renderPrompt();
