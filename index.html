@@ -2,230 +2,182 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NAFO • Style Prompt Generator</title>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NAFO • 1960s Gov Film Prompt Generator</title>
   <style>
     :root{
-      --bg: #07090d;
-      --panel: rgba(255,255,255,.04);
-      --border: rgba(255,255,255,.12);
-      --border2: rgba(255,255,255,.18);
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.72);
+      --bg:#07090d;
+      --panel:rgba(255,255,255,.04);
+      --border:rgba(255,255,255,.12);
+      --border2:rgba(255,255,255,.18);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.72);
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
       --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      --radius: 16px;
+      --radius:16px;
     }
-    *{ box-sizing: border-box; }
-    html, body { height: 100%; }
+    *{box-sizing:border-box}
     body{
-      margin: 0;
-      font-family: var(--sans);
+      margin:0;
+      font-family:var(--sans);
       background: radial-gradient(1200px 600px at 20% -10%, rgba(255,255,255,.06), transparent 55%),
                   radial-gradient(900px 500px at 90% 10%, rgba(255,255,255,.05), transparent 60%),
                   var(--bg);
-      color: var(--text);
-      overflow-x: hidden;
+      color:var(--text);
+      padding:18px 16px 40px;
     }
-
-    /* Subtle CRT scanlines + noise */
     .scanlines::before{
       content:"";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        repeating-linear-gradient(
-          to bottom,
-          rgba(255,255,255,.03) 0px,
-          rgba(255,255,255,.03) 1px,
-          rgba(0,0,0,0) 2px,
-          rgba(0,0,0,0) 4px
-        );
-      mix-blend-mode: overlay;
-      opacity: .35;
-      z-index: 40;
+      position:fixed; inset:0;
+      pointer-events:none;
+      background:repeating-linear-gradient(to bottom,
+        rgba(255,255,255,.03) 0px,
+        rgba(255,255,255,.03) 1px,
+        rgba(0,0,0,0) 2px,
+        rgba(0,0,0,0) 4px
+      );
+      mix-blend-mode:overlay;
+      opacity:.35;
+      z-index:40;
     }
     .scanlines::after{
       content:"";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
-      opacity: .06;
-      z-index: 41;
+      position:fixed; inset:0;
+      pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+      opacity:.06;
+      z-index:41;
     }
-
-    .wrap{ max-width: 1100px; margin: 0 auto; padding: 18px 16px 40px; }
+    .wrap{max-width:1100px;margin:0 auto}
     .classbar{
-      display: flex; justify-content: space-between; align-items: center; gap: 10px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.28);
-      border-radius: var(--radius);
-      padding: 10px 12px;
-      margin-bottom: 14px;
-      backdrop-filter: blur(6px);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.28);
+      border-radius:var(--radius);
+      padding:10px 12px;
+      margin-bottom:14px;
+      backdrop-filter:blur(6px);
     }
-    .classbar span{
-      letter-spacing: .14em;
-      font-size: 12px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .mono{ font-family: var(--mono); }
-
+    .classbar span{letter-spacing:.14em;font-size:12px;text-transform:uppercase;color:var(--muted)}
+    .mono{font-family:var(--mono)}
     .titleblock{
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.22);
-      border-radius: var(--radius);
-      padding: 14px 14px;
-      margin-bottom: 14px;
-      backdrop-filter: blur(6px);
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.22);
+      border-radius:var(--radius);
+      padding:14px;
+      margin-bottom:14px;
+      backdrop-filter:blur(6px);
     }
-    .titleblock h1{
-      margin: 0 0 6px;
-      font-size: 18px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-    }
-    .titleblock p{ margin: 0; color: var(--muted); line-height: 1.45; }
-
+    .titleblock h1{margin:0 0 6px;font-size:18px;letter-spacing:.06em;text-transform:uppercase}
+    .titleblock p{margin:0;color:var(--muted);line-height:1.45}
     .panel{
-      border: 1px solid var(--border);
-      background: var(--panel);
-      border-radius: var(--radius);
-      padding: 16px;
-      backdrop-filter: blur(6px);
+      border:1px solid var(--border);
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:16px;
+      backdrop-filter:blur(6px);
     }
-    .panel-title{
-      margin: 0 0 6px;
-      font-size: 16px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
+    .panel-title{margin:0 0 6px;font-size:16px;letter-spacing:.06em;text-transform:uppercase}
+    .panel-subtitle{margin:0 0 14px;color:var(--muted);line-height:1.45}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .controls{display:grid;gap:12px}
+    .field{display:grid;gap:6px}
+    .label{font-size:12px;letter-spacing:.14em;opacity:.9;text-transform:uppercase}
+    .select,.textarea,.input{
+      width:100%;
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:10px 12px;
+      background:rgba(0,0,0,.35);
+      color:var(--text);
+      outline:none;
+      font-family:var(--mono);
     }
-    .panel-subtitle{ margin: 0 0 14px; color: var(--muted); line-height: 1.45; }
-
-    .grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
-
-    .controls{ display: grid; gap: 12px; }
-    .field{ display: grid; gap: 6px; }
-    .label{
-      font-size: 12px;
-      letter-spacing: .14em;
-      opacity: .9;
-      text-transform: uppercase;
+    .select:focus,.textarea:focus,.input:focus{
+      border-color:rgba(255,255,255,.22);
+      box-shadow:0 0 0 3px rgba(255,255,255,.05);
     }
-    .select, .textarea, .input{
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      padding: 10px 12px;
-      background: rgba(0,0,0,.35);
-      color: var(--text);
-      outline: none;
-    }
-    .select:focus, .textarea:focus, .input:focus{
-      border-color: rgba(255,255,255,.22);
-      box-shadow: 0 0 0 3px rgba(255,255,255,.05);
-    }
-
-    .row{ display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
     .btn{
-      border-radius: 12px;
-      border: 1px solid var(--border2);
-      background: rgba(255,255,255,.06);
-      padding: 10px 12px;
-      cursor: pointer;
-      color: var(--text);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      font-size: 12px;
+      border-radius:12px;
+      border:1px solid var(--border2);
+      background:rgba(255,255,255,.06);
+      padding:10px 12px;
+      cursor:pointer;
+      color:var(--text);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:12px;
+      font-family:var(--mono);
     }
-    .btn:hover{ background: rgba(255,255,255,.10); }
-    .btn.ghost{ background: transparent; opacity: .9; }
-
-    .hint{ margin: 10px 0 0; color: var(--muted); min-height: 18px; }
-    .divider{ height: 1px; background: rgba(255,255,255,.08); margin: 14px 0; }
-    .footer{
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
+    .btn:hover{background:rgba(255,255,255,.10)}
+    .btn.ghost{background:transparent;opacity:.9}
+    .hint{margin:10px 0 0;color:var(--muted);min-height:18px}
+    .divider{height:1px;background:rgba(255,255,255,.08);margin:14px 0}
+    .footer{margin-top:14px;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
     .pill{
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.25);
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      margin-top: 10px;
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.25);
+      color:var(--muted);
+      font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+      margin-top:10px;
+      font-family:var(--mono);
     }
-
-    .checkrow{
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.25);
-      padding: 10px 12px;
-      border-radius: 12px;
+    .sliderwrap{
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.25);
+      border-radius:12px;
+      padding:10px 12px;
     }
-    .checkrow input{ transform: scale(1.15); }
-    .checkrow .labeltext{
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      font-size: 12px;
-      opacity: .9;
-    }
-    .checkrow .sub{
-      margin-left: auto;
-      font-size: 12px;
-      opacity: .7;
-    }
+    .sliderwrap .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+    .sliderwrap .top span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-family:var(--mono)}
+    input[type="range"]{width:100%}
+    .locknote{font-size:12px;color:var(--muted);line-height:1.35}
+    .minirow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   </style>
 </head>
 
 <body class="scanlines">
   <div class="wrap">
     <div class="classbar">
-      <span>CLASSIFIED • FIELD REPORT</span>
+      <span>CLASSIFIED • EDUCATIONAL REEL</span>
       <span class="mono">ARCHIVE NODE 32</span>
     </div>
 
     <div class="titleblock">
       <h1 class="mono">National Anomaly Field Office</h1>
-      <p class="mono">Style Prompt Generator • officially denied</p>
+      <p class="mono">1960s Government Informational Film • earnest + propaganda-adjacent</p>
     </div>
 
-    <section class="panel" id="prompt-generator">
+    <section class="panel">
       <h2 class="panel-title mono">Prompt Composer</h2>
-      <p class="panel-subtitle mono">Creature-first + higher variability • MidJourney V7</p>
+      <p class="panel-subtitle mono">
+        Creature first • explicit agency • year randomizes 1962–1968 on every update • agency locks MJ params (unless Manual Override)
+      </p>
 
       <div class="grid">
         <div class="controls" id="controls"></div>
 
-        <div class="output">
+        <div>
           <label class="label mono" for="finalPrompt">FINAL PROMPT</label>
-          <textarea id="finalPrompt" class="textarea mono" rows="12" readonly></textarea>
+          <textarea id="finalPrompt" class="textarea" rows="13" readonly></textarea>
 
           <div class="row">
-            <button class="btn mono" id="copyBtn" type="button">Copy</button>
-            <button class="btn ghost mono" id="resetBtn" type="button">Reset</button>
-            <button class="btn mono" id="randomBtn" type="button">Randomize Wording</button>
+            <button class="btn" id="copyBtn" type="button">Copy</button>
+            <button class="btn" id="randomBtn" type="button">Randomize All</button>
+            <button class="btn ghost" id="resetBtn" type="button">Reset</button>
           </div>
 
-          <p class="hint mono" id="copyHint" aria-live="polite"></p>
-          <div class="pill mono" id="statusPill">MJ Params: —</div>
+          <div class="row">
+            <button class="btn" id="dlTxtBtn" type="button">Download .txt</button>
+            <button class="btn" id="dlJsonBtn" type="button">Download .json preset</button>
+          </div>
+
+          <p class="hint mono" id="hint" aria-live="polite"></p>
+          <div class="pill" id="statusPill">MJ Params: —</div>
 
           <div class="divider"></div>
           <div class="footer mono">NAFO // INTERNAL TOOLING // DO NOT DISTRIBUTE</div>
@@ -234,680 +186,770 @@
     </section>
   </div>
 
-  <script>
-    (() => {
-      // --------- small deterministic PRNG (so "Randomize" can vary wording) ----------
-      function xfnv1a(str){
-        let h = 2166136261 >>> 0;
-        for (let i=0;i<str.length;i++){
-          h ^= str.charCodeAt(i);
-          h = Math.imul(h, 16777619);
-        }
-        return h >>> 0;
-      }
-      function mulberry32(a){
-        return function(){
-          let t = a += 0x6D2B79F5;
-          t = Math.imul(t ^ (t >>> 15), t | 1);
-          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-      }
-      function pick(rng, arr){
-        return arr[Math.floor(rng() * arr.length)];
-      }
-      function sampleN(rng, arr, n){
-        const copy = arr.slice();
-        for (let i = copy.length - 1; i > 0; i--) {
-          const j = Math.floor(rng() * (i + 1));
-          [copy[i], copy[j]] = [copy[j], copy[i]];
-        }
-        return copy.slice(0, Math.min(n, copy.length));
-      }
+<script>
+(() => {
+  // ---------- Utilities ----------
+  function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  function choose(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+  function el(tag, attrs = {}, children = []) {
+    const node = document.createElement(tag);
+    for (const [k,v] of Object.entries(attrs)) {
+      if (k === "class") node.className = v;
+      else if (k === "for") node.htmlFor = v;
+      else if (k === "checked") node.checked = !!v;
+      else node.setAttribute(k, v);
+    }
+    for (const c of children) node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    return node;
+  }
+  function makeSelect({ id, label, options, value, placeholder="Select…", onChange }) {
+    const s = el("select", { id, class:"select" });
+    s.appendChild(el("option", { value:"" }, [placeholder]));
+    options.forEach(o => s.appendChild(el("option", { value:o.value }, [o.label])));
+    s.value = value || "";
+    s.addEventListener("change", e => onChange(e.target.value));
+    return el("div", { class:"field" }, [
+      el("label", { class:"label mono", for:id }, [label]),
+      s
+    ]);
+  }
+  function makeInput({ id, label, value, type="number", min, max, step, onInput }) {
+    const attrs = { id, class:"input", type, value: value ?? "" };
+    if (min !== undefined) attrs.min = String(min);
+    if (max !== undefined) attrs.max = String(max);
+    if (step !== undefined) attrs.step = String(step);
+    const i = el("input", attrs);
+    i.addEventListener("input", e => onInput(e.target.value));
+    return el("div", { class:"field" }, [
+      el("label", { class:"label mono", for:id }, [label]),
+      i
+    ]);
+  }
+  function makeCheckbox({ id, label, checked, sub, onChange }) {
+    const box = el("input", { id, type:"checkbox", checked });
+    box.addEventListener("change", e => onChange(e.target.checked));
+    const wrap = el("div", { class:"sliderwrap" }, [
+      el("div", { class:"top" }, [
+        el("span", {}, [label]),
+        el("span", { class:"mono" }, [sub || ""])
+      ]),
+      box
+    ]);
+    wrap.querySelector(".top span").classList.add("mono");
+    return wrap;
+  }
+  function makeSlider({ id, label, value, min, max, step, left, right, onInput }) {
+    const r = el("input", { id, type:"range", min:String(min), max:String(max), step:String(step), value:String(value) });
+    const valSpan = el("span", { class:"mono", id: id + "_val" }, [String(value)]);
+    r.addEventListener("input", e => {
+      valSpan.textContent = e.target.value;
+      onInput(parseInt(e.target.value, 10));
+    });
+    return el("div", { class:"sliderwrap" }, [
+      el("div", { class:"top" }, [
+        el("span", { class:"mono" }, [label]),
+        valSpan
+      ]),
+      r,
+      el("div", { class:"top" }, [
+        el("span", { class:"mono" }, [left]),
+        el("span", { class:"mono" }, [right])
+      ])
+    ]);
+  }
 
-      const DATA = {
-        folkloreIntensity: [
-          { value: "0", label: "0 — Mundane (realism)" },
-          { value: "1", label: "1 — Local Legend" },
-          { value: "2", label: "2 — Unsettling" },
-          { value: "3", label: "3 — Mythic" }
-        ],
-        credibility: [
-          { value: "believable", label: "Believable (documentary)" },
-          { value: "questionable", label: "Questionable (ambiguous)" },
-          { value: "fabricated", label: "Fabricated (staged)" }
-        ],
-        variation: [
-          { value: "low", label: "Low (steady wording)" },
-          { value: "med", label: "Medium (more variety)" },
-          { value: "high", label: "High (lots of variety)" }
-        ],
-        visibility: [
-          { value: "clear", label: "Clear (cryptid visible)" },
-          { value: "partial", label: "Partial (obscured)" },
-          { value: "distant", label: "Distant (far / horizon)" }
-        ],
+  // ---------- Data ----------
+  const AGENCIES = [
+    { value:"uspio", label:"U.S. Public Information Office" },
+    { value:"british", label:"British Ministry of Information" },
+    { value:"soviet", label:"Soviet Scientific Archive" },
+    { value:"civil", label:"U.S. Civil Defense Bureau" },
+    { value:"wildlife", label:"Department of Wildlife & Natural Resources" },
+  ];
 
-        cameras: [
-          { value: "35mm", label: "35mm film photo" },
-          { value: "polaroid", label: "Polaroid" },
-          { value: "cctv", label: "CCTV still" },
-          { value: "handheld_video", label: "Handheld camcorder frame" },
-          { value: "thermal", label: "Thermal imaging" },
-          { value: "night_vision", label: "Night vision" }
-        ],
-        locations: [
-          { value: "pine_forest", label: "Pine forest" },
-          { value: "abandoned_mill", label: "Abandoned mill" },
-          { value: "rural_road", label: "Rural road" },
-          { value: "swamp", label: "Swamp" },
-          { value: "coastal_cliffs", label: "Coastal cliffs" },
-          { value: "suburban_woods", label: "Suburban treeline" },
-          { value: "derelict_town", label: "Derelict town" }
-        ],
-        atmospheres: [
-          { value: "fog", label: "Fog" },
-          { value: "thunderstorm", label: "Thunderstorm" },
-          { value: "heavy_rain", label: "Heavy rain" },
-          { value: "snow", label: "Snow" },
-          { value: "low_mist", label: "Low ground mist" },
-          { value: "moonless_night", label: "Moonless night" },
-          { value: "sodium_vapor", label: "Sodium-vapor streetlight haze" }
-        ],
+  // Agency profiles = wording + base params (locked unless Manual Override)
+  // "propaganda" will nudge these.
+  const AGENCY_PROFILE = {
+    uspio: {
+      wording: "U.S. Public Information Office film footage",
+      color: "slightly faded Kodachrome color",
+      tone: ["earnest instructional broadcast tone","public information educational reel"],
+      base: { s:150, w:40, chaos:8, raw:true }
+    },
+    british: {
+      wording: "British Ministry of Information archival broadcast",
+      color: "muted cool-toned color palette",
+      tone: ["formal public information tone","measured instructional broadcast"],
+      base: { s:130, w:30, chaos:6, raw:true }
+    },
+    soviet: {
+      wording: "Soviet Scientific Archive state documentation reel",
+      color: "subdued desaturated color",
+      tone: ["authoritative analytical research tone","state scientific documentation tone"],
+      base: { s:110, w:20, chaos:5, raw:true }
+    },
+    civil: {
+      wording: "U.S. Civil Defense Bureau instructional film",
+      color: "slightly heightened contrast with faded tones",
+      tone: ["calm civil preparedness tone","instructional safety broadcast tone"],
+      base: { s:180, w:60, chaos:10, raw:true }
+    },
+    wildlife: {
+      wording: "Department of Wildlife & Natural Resources field study footage",
+      color: "natural earth-toned faded film color",
+      tone: ["measured wildlife documentation tone","field study instructional narration tone"],
+      base: { s:140, w:35, chaos:7, raw:true }
+    }
+  };
 
-        classifications: [
-          { value: "cryptid", label: "Cryptid" },
-          { value: "fae", label: "Fae" },
-          { value: "apparition", label: "Apparition" },
-          { value: "aberration", label: "Aberration" },
-          { value: "entity", label: "Unknown Entity" },
-          { value: "artifact", label: "Anomalous Artifact" }
-        ],
+  const CLASSIFICATIONS = [
+    { value:"cryptid", label:"Cryptid" },
+    { value:"fae", label:"Fae" },
+    { value:"apparition", label:"Apparition" },
+    { value:"aberration", label:"Aberration" },
+    { value:"entity", label:"Unknown Entity" },
+    { value:"artifact", label:"Anomalous Artifact" }
+  ];
 
-        creatures: {
-          cryptid: [
-            { value: "mothman", label: "Mothman" },
-            { value: "jersey_devil", label: "Jersey Devil" },
-            { value: "bigfoot", label: "Bigfoot / Sasquatch" },
-            { value: "chupacabra", label: "Chupacabra" },
-            { value: "dover_demon", label: "Dover Demon" },
-            { value: "flatwoods", label: "Flatwoods Monster" }
-          ],
-          fae: [
-            { value: "wild_hunt", label: "The Wild Hunt" },
-            { value: "leprechaun", label: "Leprechaun" },
-            { value: "selkie", label: "Selkie" },
-            { value: "redcap", label: "Redcap" },
-            { value: "brownie", label: "Brownie" },
-            { value: "banshee", label: "Banshee" }
-          ],
-          apparition: [
-            { value: "woman_in_white", label: "Woman in White" },
-            { value: "black_dog", label: "Black Dog" },
-            { value: "headless_rider", label: "Headless Rider" },
-            { value: "poltergeist", label: "Poltergeist" },
-            { value: "shadow_person", label: "Shadow Person" }
-          ],
-          aberration: [
-            { value: "fleshgait", label: "Fleshgait" },
-            { value: "mimic", label: "Mimic" },
-            { value: "crawler", label: "Pale Crawler" },
-            { value: "things_that_knock", label: "Things That Knock" }
-          ],
-          entity: [
-            { value: "unknown_biologic", label: "Unknown Biologic" },
-            { value: "unknown_humanoid", label: "Unknown Humanoid" },
-            { value: "unknown_aerial", label: "Unknown Aerial" },
-            { value: "unknown_aquatic", label: "Unknown Aquatic" }
-          ],
-          artifact: [
-            { value: "cursed_relic", label: "Cursed Relic" },
-            { value: "impossible_device", label: "Impossible Device" },
-            { value: "forbidden_text", label: "Forbidden Text" },
-            { value: "anomalous_signal", label: "Anomalous Signal Source" }
-          ]
-        },
+  // More choices (jackpot-friendly)
+  const CREATURES = {
+    cryptid: [
+      { value:"mothman", label:"Mothman" },
+      { value:"jersey_devil", label:"Jersey Devil" },
+      { value:"bigfoot", label:"Bigfoot / Sasquatch" },
+      { value:"chupacabra", label:"Chupacabra" },
+      { value:"flatwoods", label:"Flatwoods Monster" },
+      { value:"dover_demon", label:"Dover Demon" },
+      { value:"fresno_nightcrawler", label:"Fresno Nightcrawler" },
+      { value:"loveland_frog", label:"Loveland Frogman" },
+      { value:"thunderbird", label:"Thunderbird" },
+      { value:"mongolian_death_worm", label:"Mongolian Death Worm" },
+      { value:"ogopogo", label:"Ogopogo / Lake Monster" },
+      { value:"mokele_mbembe", label:"Mokele-mbembe" }
+    ],
+    fae: [
+      { value:"wild_hunt", label:"The Wild Hunt" },
+      { value:"selkie", label:"Selkie" },
+      { value:"banshee", label:"Banshee" },
+      { value:"redcap", label:"Redcap" },
+      { value:"brownie", label:"Brownie" },
+      { value:"leprechaun", label:"Leprechaun" }
+    ],
+    apparition: [
+      { value:"woman_in_white", label:"Woman in White" },
+      { value:"black_dog", label:"Black Dog" },
+      { value:"headless_rider", label:"Headless Rider" },
+      { value:"shadow_person", label:"Shadow Person" },
+      { value:"poltergeist", label:"Poltergeist" }
+    ],
+    aberration: [
+      { value:"crawler", label:"Pale Crawler" },
+      { value:"mimic", label:"Mimic" },
+      { value:"fleshgait", label:"Fleshgait" },
+      { value:"things_that_knock", label:"Things That Knock" },
+      { value:"bone_orchard", label:"Bone Orchard Entity" }
+    ],
+    entity: [
+      { value:"unknown_colossal", label:"Unidentified Colossal Entity" },
+      { value:"unknown_humanoid", label:"Unknown Humanoid" },
+      { value:"unknown_aerial", label:"Unknown Aerial" },
+      { value:"unknown_aquatic", label:"Unknown Aquatic" },
+      { value:"unknown_signal", label:"Unknown Signal Presence" }
+    ],
+    artifact: [
+      { value:"impossible_device", label:"Impossible Device" },
+      { value:"cursed_relic", label:"Cursed Relic" },
+      { value:"forbidden_text", label:"Forbidden Text" },
+      { value:"anomalous_monolith", label:"Anomalous Monolith" },
+      { value:"weather_engine", label:"Recovered Weather Instrument" }
+    ]
+  };
 
-        variants: {
-          mothman: [
-            { value: "red_eyes", label: "Red-Eyed Silhouette" },
-            { value: "ash_wings", label: "Ash-Dusted Wings" },
-            { value: "bridge_omen", label: "Bridge Omen" }
-          ],
-          jersey_devil: [
-            { value: "pine_barrens", label: "Pine Barrens Stalker" },
-            { value: "hoofprints", label: "Hoofprint Trail" }
-          ],
-          wild_hunt: [
-            { value: "horned_riders", label: "Horned Riders" },
-            { value: "hounds", label: "Black Hounds" },
-            { value: "winter_procession", label: "Winter Procession" }
-          ]
-        },
+  const VARIANTS = {
+    mothman: [
+      { value:"red_eyes", label:"Red-Eyed Silhouette" },
+      { value:"ash_wings", label:"Ash-Dusted Wings" },
+      { value:"bridge_omen", label:"Bridge Omen" }
+    ],
+    jersey_devil: [
+      { value:"pine_barrens", label:"Pine Barrens Stalker" },
+      { value:"hoofprints", label:"Hoofprint Trail" }
+    ],
+    wild_hunt: [
+      { value:"horned_riders", label:"Horned Riders" },
+      { value:"hounds", label:"Black Hounds" },
+      { value:"winter_procession", label:"Winter Procession" }
+    ],
+    bigfoot: [
+      { value:"tree_line", label:"Treeline Crossing" },
+      { value:"riverbank", label:"Riverbank Forager" }
+    ],
+    thunderbird: [
+      { value:"stormfront", label:"Stormfront Glide" },
+      { value:"powerlines", label:"Perched on Power Lines" }
+    ]
+  };
 
-        aspectRatios: [
-          { value: "1:1", label: "1:1 (Square)" },
-          { value: "3:2", label: "3:2 (35mm photo)" },
-          { value: "2:3", label: "2:3 (Portrait photo)" },
-          { value: "4:3", label: "4:3 (Old video)" },
-          { value: "16:9", label: "16:9 (Widescreen)" },
-          { value: "9:16", label: "9:16 (Vertical)" },
-          { value: "21:9", label: "21:9 (Ultra-wide)" }
-        ],
+  // 60s “source medium” + behavior (keeps the tone consistent)
+  const SOURCE_MEDIUM = [
+    { value:"16mm", label:"16mm instructional reel", add:["mild 16mm film grain","projector transfer softness"] },
+    { value:"8mm", label:"8mm classroom film", add:["soft 8mm grain","more pronounced gate weave","slightly uneven exposure"] },
+    { value:"newsreel", label:"35mm newsreel excerpt", add:["35mm newsreel footage","cleaner grain, still archival","newsreel transfer wear"] },
+    { value:"kinescope", label:"broadcast kinescope recording", add:["kinescope recording artifacts","mild scanline texture","broadcast-era contrast rolloff"] }
+  ];
 
-        quality: [
-          { value: "1", label: "1 (Default)" },
-          { value: "2", label: "2 (More detail / more GPU)" },
-          { value: "4", label: "4 (Max detail / more GPU)" }
-        ]
+  const CAMERA_BEHAVIOR = [
+    { value:"tripod_static", label:"Static tripod shot", add:["static tripod composition","neutral observational framing"] },
+    { value:"slow_zoom", label:"Slow documentary zoom", add:["slow observational zoom-in","tripod-stable framing"] },
+    { value:"field_pan", label:"Measured field pan", add:["measured pan across landscape","tripod-mounted camera movement"] },
+    { value:"instructional_cutaway", label:"Instructional cutaway framing", add:["instructional cutaway composition","specimen-centered framing"] }
+  ];
+
+  const VISIBILITY = [
+    { value:"clear", label:"Clear (subject visible)", add:["clearly visible in frame"] },
+    { value:"partial", label:"Partial (obscured)", add:["partially obscured but visible"] },
+    { value:"distant", label:"Distant (far)", add:["distant subject visible in wide shot"] }
+  ];
+
+  const SCALE = [
+    { value:"subtle", label:"Subtle presence", add:["subtle presence within frame"] },
+    { value:"mid", label:"Clearly visible", add:["clearly visible mid-ground subject"] },
+    { value:"large", label:"Large and dominant", add:["large dominant figure in frame"] },
+    { value:"colossal", label:"Landscape-dominating", add:["landscape-dominating presence calmly framed"] }
+  ];
+
+  const ENVIRONMENTS = [
+    { value:"industrial_skyline", label:"Industrial skyline at dusk" },
+    { value:"midwest_farmland", label:"Midwestern farmland" },
+    { value:"pine_clearing", label:"Pine forest clearing" },
+    { value:"river_basin", label:"River basin floodplain" },
+    { value:"gov_facility", label:"Government research facility exterior" },
+    { value:"suburban_treeline", label:"Suburban treeline" },
+    { value:"coastal_cliffs", label:"Coastal cliffs and fog" },
+    { value:"rail_yard", label:"Rail yard / industrial corridor" },
+    { value:"reservoir", label:"Reservoir shoreline" }
+  ];
+
+  const ATMOSPHERE = [
+    { value:"overcast", label:"Overcast daylight" },
+    { value:"dusk", label:"Late afternoon / dusk" },
+    { value:"night_sodium", label:"Night under sodium vapor lamps" },
+    { value:"mist", label:"Low mist" },
+    { value:"light_rain", label:"Light rain" },
+    { value:"stormfront", label:"Stormfront sky" }
+  ];
+
+  const ASPECT_RATIOS = [
+    { value:"4:3", label:"4:3 (TV/classroom)" },
+    { value:"3:2", label:"3:2 (photo-ish)" },
+    { value:"1:1", label:"1:1" },
+    { value:"16:9", label:"16:9 (modern)" }
+  ];
+
+  // ---------- State ----------
+  const state = {
+    classification: "cryptid",
+    creature: "mothman",
+    variant: "",
+    agency: "uspio",
+
+    source: "16mm",
+    cameraBehavior: "tripod_static",
+    environment: "industrial_skyline",
+    atmosphere: "dusk",
+    visibility: "clear",
+    scale: "large",
+
+    propaganda: 35,     // 0..100
+    jackpotBias: 55,    // 0..100 (higher = more likely colossal on Randomize)
+    aspectRatio: "4:3",
+
+    manual: false,
+    manual_s: 150,
+    manual_w: 40,
+    manual_chaos: 8,
+    manual_raw: true
+  };
+
+  // ---------- DOM ----------
+  const controls = document.getElementById("controls");
+  const finalPrompt = document.getElementById("finalPrompt");
+  const statusPill = document.getElementById("statusPill");
+  const hint = document.getElementById("hint");
+
+  const copyBtn = document.getElementById("copyBtn");
+  const randomBtn = document.getElementById("randomBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const dlTxtBtn = document.getElementById("dlTxtBtn");
+  const dlJsonBtn = document.getElementById("dlJsonBtn");
+
+  // ---------- Logic: Agency locked params + propaganda nudges ----------
+  function yearNow(){ return randInt(1962, 1968); }
+
+  function getAgencyComputedParams(){
+    const base = AGENCY_PROFILE[state.agency].base;
+    const p = clamp(state.propaganda, 0, 100);
+
+    // Subtle nudges:
+    // - more propaganda => slightly higher stylize + weird + chaos (but still controlled)
+    const s = clamp(base.s + Math.round((p - 35) * 0.6), 60, 260);
+    const w = clamp(base.w + Math.round((p - 35) * 0.35), 0, 120);
+    const chaos = clamp(base.chaos + Math.round((p - 35) * 0.06), 0, 18);
+
+    // Raw stays on by default; if propaganda is very high, allow it to remain on (we keep it on always in locked mode).
+    const raw = true;
+
+    return { s, w, chaos, raw };
+  }
+
+  function getParams(){
+    if (state.manual) {
+      return {
+        s: clamp(parseInt(state.manual_s,10) || 150, 0, 1000),
+        w: clamp(parseInt(state.manual_w,10) || 40, 0, 300),
+        chaos: clamp(parseInt(state.manual_chaos,10) || 8, 0, 100),
+        raw: !!state.manual_raw
       };
+    }
+    return getAgencyComputedParams();
+  }
 
-      // Camera overrides (still your option 1)
-      const CAMERA_PROFILES = {
-        "35mm": [
-          "authentic 35mm film photograph",
-          "visible analog film grain",
-          "slight underexposure, imperfect focus"
-        ],
-        "polaroid": [
-          "polaroid instant photo",
-          "soft focus, uneven exposure",
-          "chemical artifacts, faded color cast"
-        ],
-        "cctv": [
-          "surveillance camera still",
-          "low resolution, compression artifacts",
-          "timestamped security footage aesthetic"
-        ],
-        "handheld_video": [
-          "found footage camcorder frame",
-          "motion blur, rolling shutter artifacts",
-          "low light noise"
-        ],
-        "thermal": [
-          "thermal imaging still",
-          "heat signature contrast, sensor noise",
-          "utilitarian capture"
-        ],
-        "night_vision": [
-          "night vision footage still",
-          "infrared glow, high noise",
-          "crushed blacks, blown highlights"
-        ]
-      };
+  function propagandaWording(){
+    const p = clamp(state.propaganda,0,100);
+    // Earnest → curated propaganda
+    if (p < 20) return ["plainspoken instructional narration", "unadorned educational tone"];
+    if (p < 45) return ["earnest instructional broadcast tone", "public information educational framing"];
+    if (p < 70) return ["carefully framed instructional messaging", "selectively presented official footage"];
+    return ["strongly curated official messaging", "staged demonstration energy, presented as fact"];
+  }
 
-      // Dial mappings
-      const FOLKLORE_MAP = {
-        "0": { s: 50,  w: 0   },
-        "1": { s: 100, w: 40  },
-        "2": { s: 200, w: 120 },
-        "3": { s: 350, w: 300 }
-      };
-      const CREDIBILITY_MAP = {
-        believable:   { chaos: 5,  tag: "documentary authenticity, plausible event" },
-        questionable: { chaos: 15, tag: "ambiguous evidence, unclear subject" },
-        fabricated:   { chaos: 30, tag: "possible staged footage, uncanny presentation" }
-      };
+  function environmentLabel(val){
+    const o = ENVIRONMENTS.find(x=>x.value===val);
+    return o ? o.label : val;
+  }
+  function atmosphereLabel(val){
+    const o = ATMOSPHERE.find(x=>x.value===val);
+    return o ? o.label : val;
+  }
+  function classificationLabel(val){
+    const o = CLASSIFICATIONS.find(x=>x.value===val);
+    return o ? o.label : val;
+  }
+  function creatureLabel(){
+    const list = CREATURES[state.classification] || [];
+    const o = list.find(x=>x.value===state.creature);
+    return o ? o.label : "Unknown Subject";
+  }
+  function variantLabel(){
+    const list = VARIANTS[state.creature] || [];
+    const o = list.find(x=>x.value===state.variant);
+    return o ? o.label : "";
+  }
 
-      // Wording banks (to reduce repetition)
-      const OPENERS = [
-        "found footage documentary photograph",
-        "accidental field documentation photo",
-        "amateur evidence photo",
-        "unplanned encounter documentation",
-        "candid incident photograph"
-      ];
-      const COMPOSITION = [
-        "imperfect framing, unsteady composition",
-        "crooked horizon, rushed framing",
-        "candid composition, awkward angle",
-        "off-center subject, accidental framing",
-        "handheld shot, uneven composition"
-      ];
-      const TONE = [
-        "restrained horror",
-        "quiet dread",
-        "uneasy stillness",
-        "ominous calm",
-        "unsettling realism"
-      ];
-      const ARTIFACTS = [
-        "subtle scanlines",
-        "archival wear",
-        "minor lens grime",
-        "dust specks on film",
-        "edge vignetting",
-        "light leak",
-        "compression ringing"
-      ];
-      const MICRO_DETAILS = [
-        "breath visible in cold air",
-        "wind-blown branches",
-        "distant streetlight glow",
-        "wet ground reflections",
-        "insect specks near lens",
-        "mud on boots at frame edge",
-        "flash glare off wet leaves",
-        "camera strap shadow intruding"
-      ];
+  // ---------- Render controls ----------
+  function renderControls(){
+    controls.innerHTML = "";
 
-      const VISIBILITY_TAGS = {
-        clear:  ["clearly visible in frame", "full subject visible", "subject visible, not obscured"],
-        partial:["partially obscured by trees", "partial glimpse, frame cut-off", "obscured by fog and motion blur"],
-        distant:["tiny figure on the horizon", "distant silhouette far away", "small subject in wide shot"]
-      };
-
-      const state = {
-        // Creature-first
-        classification: "cryptid",
-        creature: "",
-        variant: "",
-
-        // Dials
-        folklore: "1",
-        credibility: "questionable",
-        variation: "med",
-        visibility: "clear",
-
-        // Scene/capture
-        camera: "35mm",
-        location: "",
-        atmosphere: "",
-
-        // MJ params
-        aspectRatio: "16:9",
-        chaos: "10",
-        raw: false,
-        quality: "1",
-
-        chaosLockedByUser: false,
-        seed: 1
-      };
-
-      const controls = document.getElementById("controls");
-      const finalPrompt = document.getElementById("finalPrompt");
-      const copyBtn = document.getElementById("copyBtn");
-      const resetBtn = document.getElementById("resetBtn");
-      const randomBtn = document.getElementById("randomBtn");
-      const copyHint = document.getElementById("copyHint");
-      const statusPill = document.getElementById("statusPill");
-
-      function el(tag, attrs = {}, children = []) {
-        const node = document.createElement(tag);
-        Object.entries(attrs).forEach(([k, v]) => {
-          if (k === "class") node.className = v;
-          else if (k === "for") node.htmlFor = v;
-          else if (k === "checked") node.checked = !!v;
-          else node.setAttribute(k, v);
-        });
-        children.forEach(c => node.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
-        return node;
-      }
-
-      function makeSelect({ id, label, options, placeholder = "Select…", value, onChange }) {
-        const select = el("select", { id, class: "select mono" });
-        select.appendChild(el("option", { value: "" }, [placeholder]));
-        options.forEach(opt => select.appendChild(el("option", { value: opt.value }, [opt.label])));
-        select.value = value || "";
-        select.addEventListener("change", (e) => onChange(e.target.value));
-        return el("div", { class: "field" }, [
-          el("label", { class: "label mono", for: id }, [label]),
-          select
-        ]);
-      }
-
-      function makeInput({ id, label, value, placeholder = "", onInput, type = "number", min, max, step }) {
-        const attrs = { id, class: "input mono", value: value ?? "", placeholder, type };
-        if (min !== undefined) attrs.min = String(min);
-        if (max !== undefined) attrs.max = String(max);
-        if (step !== undefined) attrs.step = String(step);
-        const input = el("input", attrs);
-        input.addEventListener("input", (e) => onInput(e.target.value));
-        return el("div", { class: "field" }, [
-          el("label", { class: "label mono", for: id }, [label]),
-          input
-        ]);
-      }
-
-      function makeCheckboxRow({ id, label, checked, hint, onChange }) {
-        const box = el("input", { id, type: "checkbox", checked });
-        box.addEventListener("change", (e) => onChange(e.target.checked));
-        return el("div", { class: "checkrow" }, [
-          box,
-          el("div", { class: "labeltext mono" }, [label]),
-          el("div", { class: "sub mono" }, [hint || ""])
-        ]);
-      }
-
-      function clampInt(v, min, max, fallback) {
-        const n = parseInt(v, 10);
-        if (Number.isNaN(n)) return fallback;
-        return Math.min(max, Math.max(min, n));
-      }
-
-      function clearBelow(keys) { keys.forEach(k => state[k] = ""); }
-
-      function labelFor(list, value) {
-        const item = (list || []).find(x => x.value === value);
-        return item ? item.label : "";
-      }
-
-      function applyDials() {
-        const f = FOLKLORE_MAP[state.folklore] || FOLKLORE_MAP["1"];
-        state._stylize = f.s;
-        state._weird = f.w;
-
-        const c = CREDIBILITY_MAP[state.credibility] || CREDIBILITY_MAP.questionable;
-        state._credTag = c.tag;
-        if (!state.chaosLockedByUser) state.chaos = String(c.chaos);
-      }
-
-      function renderControls() {
-        controls.innerHTML = "";
-
-        // Creature FIRST (as you requested)
-        controls.appendChild(makeSelect({
-          id: "classificationSelect",
-          label: "CLASSIFICATION",
-          options: DATA.classifications,
-          placeholder: "Select classification…",
-          value: state.classification,
-          onChange: (val) => {
-            state.classification = val || "";
-            clearBelow(["creature", "variant"]);
-            renderControls();
-            renderPrompt();
-          }
-        }));
-
-        if (state.classification) {
-          controls.appendChild(makeSelect({
-            id: "creatureSelect",
-            label: "CREATURE",
-            options: DATA.creatures[state.classification] || [],
-            placeholder: "Select creature…",
-            value: state.creature,
-            onChange: (val) => {
-              state.creature = val || "";
-              clearBelow(["variant"]);
-              renderControls();
-              renderPrompt();
-            }
-          }));
-        }
-
-        const variantOptions = state.creature ? (DATA.variants[state.creature] || []) : [];
-        if (state.creature && variantOptions.length) {
-          controls.appendChild(makeSelect({
-            id: "variantSelect",
-            label: "VARIANT",
-            options: variantOptions,
-            placeholder: "Select variant…",
-            value: state.variant,
-            onChange: (val) => { state.variant = val || ""; renderPrompt(); }
-          }));
-        }
-
-        // Visibility (so you can actually see cryptids)
-        controls.appendChild(makeSelect({
-          id: "visibilitySelect",
-          label: "CREATURE VISIBILITY",
-          options: DATA.visibility,
-          placeholder: "Select visibility…",
-          value: state.visibility,
-          onChange: (val) => { state.visibility = val || "clear"; renderPrompt(); }
-        }));
-
-        // Dials + variability
-        controls.appendChild(makeSelect({
-          id: "folkloreSelect",
-          label: "FOLKLORE INTENSITY",
-          options: DATA.folkloreIntensity,
-          placeholder: "Select intensity…",
-          value: state.folklore,
-          onChange: (val) => { state.folklore = val || "1"; renderPrompt(); }
-        }));
-
-        controls.appendChild(makeSelect({
-          id: "credSelect",
-          label: "CREDIBILITY",
-          options: DATA.credibility,
-          placeholder: "Select credibility…",
-          value: state.credibility,
-          onChange: (val) => { state.credibility = val || "questionable"; renderPrompt(); }
-        }));
-
-        controls.appendChild(makeSelect({
-          id: "variationSelect",
-          label: "VARIATION",
-          options: DATA.variation,
-          placeholder: "Select variation…",
-          value: state.variation,
-          onChange: (val) => { state.variation = val || "med"; renderPrompt(); }
-        }));
-
-        // Scene/capture
-        controls.appendChild(makeSelect({
-          id: "cameraSelect",
-          label: "CAPTURE TYPE (OVERRIDES STYLE)",
-          options: DATA.cameras,
-          placeholder: "Select capture type…",
-          value: state.camera,
-          onChange: (val) => { state.camera = val || ""; renderPrompt(); }
-        }));
-
-        controls.appendChild(makeSelect({
-          id: "locationSelect",
-          label: "LOCATION",
-          options: DATA.locations,
-          placeholder: "Select location…",
-          value: state.location,
-          onChange: (val) => { state.location = val || ""; renderPrompt(); }
-        }));
-
-        controls.appendChild(makeSelect({
-          id: "atmosphereSelect",
-          label: "ATMOSPHERE",
-          options: DATA.atmospheres,
-          placeholder: "Select atmosphere…",
-          value: state.atmosphere,
-          onChange: (val) => { state.atmosphere = val || ""; renderPrompt(); }
-        }));
-
-        // MJ Params
-        controls.appendChild(makeSelect({
-          id: "aspectRatioSelect",
-          label: "ASPECT RATIO (MJ --ar)",
-          options: DATA.aspectRatios,
-          placeholder: "Select aspect ratio…",
-          value: state.aspectRatio,
-          onChange: (val) => { state.aspectRatio = val || "16:9"; renderPrompt(); }
-        }));
-
-        controls.appendChild(makeInput({
-          id: "chaosInput",
-          label: "CHAOS (MJ --chaos 0–100)",
-          value: state.chaos,
-          placeholder: "0–100",
-          min: 0, max: 100, step: 1,
-          onInput: (val) => {
-            state.chaosLockedByUser = true;
-            state.chaos = String(clampInt(val, 0, 100, 10));
-            renderPrompt();
-          }
-        }));
-
-        controls.appendChild(makeSelect({
-          id: "qualitySelect",
-          label: "QUALITY (MJ --q)",
-          options: DATA.quality,
-          placeholder: "Select quality…",
-          value: state.quality,
-          onChange: (val) => { state.quality = val || "1"; renderPrompt(); }
-        }));
-
-        controls.appendChild(makeCheckboxRow({
-          id: "rawToggle",
-          label: "RAW MODE",
-          checked: state.raw,
-          hint: "--raw",
-          onChange: (checked) => { state.raw = checked; renderPrompt(); }
-        }));
-      }
-
-      function renderPrompt() {
-        applyDials();
-
-        // Seeded rng based on current selections + seed, so "Randomize" changes wording
-        const key = JSON.stringify({
-          seed: state.seed,
-          c: state.classification,
-          cr: state.creature,
-          v: state.variant,
-          vis: state.visibility,
-          fol: state.folklore,
-          cred: state.credibility,
-          var: state.variation,
-          cam: state.camera,
-          loc: state.location,
-          atm: state.atmosphere
-        });
-        const rng = mulberry32(xfnv1a(key));
-
-        const parts = [];
-
-        // --- CREATURE FIRST ---
-        let creatureLabel = "";
-        if (state.creature && state.classification) {
-          const cList = DATA.creatures[state.classification] || [];
-          creatureLabel = labelFor(cList, state.creature);
-        } else {
-          // If you really want cryptids always, you can remove this fallback.
-          creatureLabel = "cryptid";
-        }
-
-        const visPhrase = pick(rng, VISIBILITY_TAGS[state.visibility] || VISIBILITY_TAGS.clear);
-
-        parts.push(`${creatureLabel}`);
-        if (state.variant && state.creature) {
-          const vLabel = labelFor(DATA.variants[state.creature], state.variant);
-          parts.push(vLabel);
-        }
-        parts.push(visPhrase);
-
-        // --- STYLE / WORDING VARIATION ---
-        const variationLevel = state.variation;
-        const opener = pick(rng, OPENERS);
-        const comp = pick(rng, COMPOSITION);
-        const tone = pick(rng, TONE);
-
-        parts.push(opener);
-        parts.push(comp);
-
-        // Camera profile overrides (adds camera-specific text)
-        if (state.camera && CAMERA_PROFILES[state.camera]) {
-          const camBits = CAMERA_PROFILES[state.camera];
-          // low/med/high control how many camera bits we include
-          const camCount = (variationLevel === "low") ? 2 : (variationLevel === "med") ? 3 : 3;
-          sampleN(rng, camBits, camCount).forEach(s => parts.push(s));
-        }
-
-        // Credibility tag
-        if (state._credTag) parts.push(state._credTag);
-
-        // Location/atmosphere next
-        if (state.location) parts.push(`location: ${labelFor(DATA.locations, state.location)}`);
-        if (state.atmosphere) parts.push(`atmosphere: ${labelFor(DATA.atmospheres, state.atmosphere)}`);
-
-        // Artifacts: choose more when variation higher
-        const artCount = (variationLevel === "low") ? 2 : (variationLevel === "med") ? 3 : 4;
-        sampleN(rng, ARTIFACTS, artCount).forEach(s => parts.push(s));
-
-        // Micro details: only on med/high to avoid always repeating
-        if (variationLevel !== "low") {
-          const microCount = (variationLevel === "med") ? 1 : 2;
-          sampleN(rng, MICRO_DETAILS, microCount).forEach(s => parts.push(s));
-        }
-
-        parts.push(tone);
-
-        const descriptive = parts.filter(Boolean).join(", ");
-
-        // MJ params
-        const params = [];
-        params.push(`--ar ${state.aspectRatio || "16:9"}`);
-
-        const chaos = clampInt(state.chaos, 0, 100, 10);
-        params.push(`--chaos ${chaos}`);
-
-        if (state.raw) params.push(`--raw`);
-
-        // dials always included (your “instrument”)
-        params.push(`--s ${state._stylize}`);
-        params.push(`--w ${state._weird}`);
-
-        const q = (state.quality === "2" || state.quality === "4") ? state.quality : "1";
-        if (q !== "1") params.push(`--q ${q}`);
-
-        finalPrompt.value = descriptive + " " + params.join(" ");
-        statusPill.textContent = "MJ Params: " + params.join(" ");
-      }
-
-      async function copyPrompt() {
-        copyHint.textContent = "";
-        const text = finalPrompt.value;
-        try {
-          await navigator.clipboard.writeText(text);
-          copyHint.textContent = "Copied to clipboard.";
-        } catch (e) {
-          finalPrompt.focus();
-          finalPrompt.select();
-          document.execCommand("copy");
-          copyHint.textContent = "Copied (fallback).";
-        }
-        setTimeout(() => (copyHint.textContent = ""), 1400);
-      }
-
-      function resetAll() {
-        state.classification = "cryptid";
-        state.creature = "";
+    // Creature block (dynamic spawn)
+    controls.appendChild(makeSelect({
+      id:"classification",
+      label:"CLASSIFICATION",
+      options: CLASSIFICATIONS,
+      value: state.classification,
+      onChange:(v)=>{
+        state.classification = v || "cryptid";
+        // default creature = first in list
+        const list = CREATURES[state.classification] || [];
+        state.creature = list[0]?.value || "";
         state.variant = "";
-        state.visibility = "clear";
-
-        state.folklore = "1";
-        state.credibility = "questionable";
-        state.variation = "med";
-
-        state.camera = "35mm";
-        state.location = "";
-        state.atmosphere = "";
-
-        state.aspectRatio = "16:9";
-        state.chaos = "10";
-        state.raw = false;
-        state.quality = "1";
-
-        state.chaosLockedByUser = false;
-        state.seed = 1;
-
-        copyHint.textContent = "";
         renderControls();
         renderPrompt();
       }
+    }));
 
-      function bumpSeed() {
-        // changes wording without changing selections
-        state.seed = (state.seed + 1) % 1000000;
+    const creatureOptions = CREATURES[state.classification] || [];
+    controls.appendChild(makeSelect({
+      id:"creature",
+      label:"CREATURE (FIRST IN PROMPT)",
+      options: creatureOptions,
+      value: state.creature,
+      onChange:(v)=>{
+        state.creature = v || "";
+        state.variant = "";
+        renderControls();
         renderPrompt();
       }
+    }));
 
-      copyBtn.addEventListener("click", copyPrompt);
-      resetBtn.addEventListener("click", resetAll);
-      randomBtn.addEventListener("click", bumpSeed);
+    const variants = VARIANTS[state.creature] || [];
+    if (variants.length) {
+      controls.appendChild(makeSelect({
+        id:"variant",
+        label:"VARIANT (OPTIONAL)",
+        options: variants,
+        value: state.variant,
+        onChange:(v)=>{ state.variant = v || ""; renderPrompt(); }
+      }));
+    }
 
-      renderControls();
-      renderPrompt();
-    })();
-  </script>
+    // Agency
+    controls.appendChild(makeSelect({
+      id:"agency",
+      label:"AGENCY (LOCKS STYLE + MJ DEFAULTS)",
+      options: AGENCIES,
+      value: state.agency,
+      onChange:(v)=>{ state.agency = v || "uspio"; renderPrompt(); }
+    }));
+
+    // Propaganda slider
+    controls.appendChild(makeSlider({
+      id:"propaganda",
+      label:"PROPAGANDA FRAMING",
+      value: state.propaganda,
+      min:0, max:100, step:1,
+      left:"Earnest / educational",
+      right:"Curated / staged",
+      onInput:(n)=>{ state.propaganda = n; renderPrompt(); }
+    }));
+
+    // Jackpot bias slider
+    controls.appendChild(makeSlider({
+      id:"jackpot",
+      label:"JACKPOT BIAS",
+      value: state.jackpotBias,
+      min:0, max:100, step:1,
+      left:"Balanced",
+      right:"More colossal hits",
+      onInput:(n)=>{ state.jackpotBias = n; }
+    }));
+
+    // Scene + source
+    controls.appendChild(makeSelect({
+      id:"source",
+      label:"SOURCE MEDIUM",
+      options: SOURCE_MEDIUM.map(x=>({value:x.value,label:x.label})),
+      value: state.source,
+      onChange:(v)=>{ state.source = v || "16mm"; renderPrompt(); }
+    }));
+
+    controls.appendChild(makeSelect({
+      id:"cameraBehavior",
+      label:"CAMERA BEHAVIOR",
+      options: CAMERA_BEHAVIOR.map(x=>({value:x.value,label:x.label})),
+      value: state.cameraBehavior,
+      onChange:(v)=>{ state.cameraBehavior = v || "tripod_static"; renderPrompt(); }
+    }));
+
+    controls.appendChild(makeSelect({
+      id:"environment",
+      label:"ENVIRONMENT",
+      options: ENVIRONMENTS,
+      value: state.environment,
+      onChange:(v)=>{ state.environment = v || ""; renderPrompt(); }
+    }));
+
+    controls.appendChild(makeSelect({
+      id:"atmosphere",
+      label:"ATMOSPHERE",
+      options: ATMOSPHERE,
+      value: state.atmosphere,
+      onChange:(v)=>{ state.atmosphere = v || ""; renderPrompt(); }
+    }));
+
+    // Presence controls
+    controls.appendChild(el("div", { class:"minirow" }, [
+      makeSelect({
+        id:"visibility",
+        label:"VISIBILITY",
+        options: VISIBILITY.map(x=>({value:x.value,label:x.label})),
+        value: state.visibility,
+        onChange:(v)=>{ state.visibility = v || "clear"; renderPrompt(); }
+      }),
+      makeSelect({
+        id:"scale",
+        label:"SCALE",
+        options: SCALE.map(x=>({value:x.value,label:x.label})),
+        value: state.scale,
+        onChange:(v)=>{ state.scale = v || "large"; renderPrompt(); }
+      })
+    ]));
+
+    // Aspect ratio
+    controls.appendChild(makeSelect({
+      id:"ar",
+      label:"ASPECT RATIO (MJ --ar)",
+      options: ASPECT_RATIOS,
+      value: state.aspectRatio,
+      onChange:(v)=>{ state.aspectRatio = v || "4:3"; renderPrompt(); }
+    }));
+
+    // Manual override toggle + locked note
+    const lockText = state.manual ? "Manual mode" : "Agency-locked";
+    controls.appendChild(makeCheckbox({
+      id:"manual",
+      label:"MANUAL OVERRIDE",
+      checked: state.manual,
+      sub: lockText,
+      onChange:(checked)=>{
+        state.manual = checked;
+        if (!checked) {
+          // snap manual values to current computed agency params so it doesn’t jump wildly if they turn it on later
+          const p = getAgencyComputedParams();
+          state.manual_s = p.s; state.manual_w = p.w; state.manual_chaos = p.chaos; state.manual_raw = p.raw;
+        }
+        renderControls();
+        renderPrompt();
+      }
+    }));
+
+    controls.appendChild(el("div", { class:"locknote mono" }, [
+      state.manual
+        ? "Manual Override is ON: you can tweak MJ params directly."
+        : "Manual Override is OFF: Agency + Propaganda Framing set MJ params automatically."
+    ]));
+
+    if (state.manual) {
+      const p = getParams();
+      controls.appendChild(makeInput({
+        id:"manual_s",
+        label:"STYLIZE (MJ --s)",
+        value: p.s,
+        min:0, max:1000, step:1,
+        onInput:(v)=>{ state.manual_s = v; renderPrompt(); }
+      }));
+      controls.appendChild(makeInput({
+        id:"manual_w",
+        label:"WEIRD (MJ --w)",
+        value: p.w,
+        min:0, max:300, step:1,
+        onInput:(v)=>{ state.manual_w = v; renderPrompt(); }
+      }));
+      controls.appendChild(makeInput({
+        id:"manual_chaos",
+        label:"CHAOS (MJ --chaos)",
+        value: p.chaos,
+        min:0, max:100, step:1,
+        onInput:(v)=>{ state.manual_chaos = v; renderPrompt(); }
+      }));
+      // raw toggle as checkbox
+      const rawWrap = el("div", { class:"sliderwrap" }, [
+        el("div", { class:"top" }, [
+          el("span", { class:"mono" }, ["RAW MODE"]),
+          el("span", { class:"mono" }, ["--raw"])
+        ]),
+        (() => {
+          const cb = el("input", { type:"checkbox", id:"manual_raw" });
+          cb.checked = !!state.manual_raw;
+          cb.addEventListener("change", e => { state.manual_raw = e.target.checked; renderPrompt(); });
+          return cb;
+        })()
+      ]);
+      controls.appendChild(rawWrap);
+    }
+  }
+
+  // ---------- Prompt generation ----------
+  function findMedium(){ return SOURCE_MEDIUM.find(x=>x.value===state.source) || SOURCE_MEDIUM[0]; }
+  function findCam(){ return CAMERA_BEHAVIOR.find(x=>x.value===state.cameraBehavior) || CAMERA_BEHAVIOR[0]; }
+  function findVisibility(){ return VISIBILITY.find(x=>x.value===state.visibility) || VISIBILITY[0]; }
+  function findScale(){ return SCALE.find(x=>x.value===state.scale) || SCALE[2]; }
+
+  function renderPrompt(){
+    const year = yearNow(); // randomizes on every update (your option C)
+    const agency = AGENCY_PROFILE[state.agency];
+    const params = getParams();
+
+    const medium = findMedium();
+    const cam = findCam();
+    const vis = findVisibility();
+    const scale = findScale();
+
+    const toneBits = propagandaWording();
+    const tonePick = choose([...agency.tone, ...toneBits]);
+
+    const creature = creatureLabel();
+    const variant = variantLabel();
+
+    // Keep prompt “film language” consistent, with subtle variation
+    const intro = [
+      "presented as",
+      "released as",
+      "archived as",
+      "screened as",
+      "distributed as"
+    ];
+
+    const stagingBits = (state.propaganda >= 70)
+      ? ["demonstration framing", "officially sanctioned presentation", "selective editorial emphasis"]
+      : (state.propaganda >= 45)
+        ? ["carefully framed presentation", "official commentary implied"]
+        : ["plain observational presentation"];
+
+    const common = [
+      `${creature}${variant ? ", " + variant : ""}`,
+      ...vis.add,
+      ...scale.add,
+      `observed within ${environmentLabel(state.environment)}`,
+      `during ${atmosphereLabel(state.atmosphere)}`,
+      `${choose(intro)} ${year} ${agency.wording}`,
+      ...medium.add,
+      ...cam.add,
+      "neutral observational framing",
+      "soft contrast, mid-century broadcast clarity",
+      agency.color,
+      "mild dust specks, light gate weave",
+      choose(stagingBits),
+      tonePick
+    ];
+
+    // MJ params (locked unless manual)
+    const mj = [];
+    mj.push(`--ar ${state.aspectRatio || "4:3"}`);
+    mj.push(`--s ${params.s}`);
+    mj.push(`--w ${params.w}`);
+    mj.push(`--chaos ${params.chaos}`);
+    if (params.raw) mj.push(`--raw`);
+
+    const full = common.filter(Boolean).join(", ") + " " + mj.join(" ");
+    finalPrompt.value = full;
+    statusPill.textContent = "MJ Params: " + mj.join(" ");
+  }
+
+  // ---------- Randomize All (jackpot) ----------
+  function randomizeAll(){
+    // classification (weighted a bit toward cryptid/entity)
+    const classPool = [
+      ...Array(4).fill("cryptid"),
+      ...Array(2).fill("entity"),
+      "fae","apparition","aberration","artifact"
+    ];
+    state.classification = choose(classPool);
+
+    const creatureList = CREATURES[state.classification] || [];
+    state.creature = (creatureList.length) ? choose(creatureList).value : "";
+    state.variant = "";
+
+    // if creature has variants, occasionally pick one
+    const varList = VARIANTS[state.creature] || [];
+    if (varList.length && Math.random() < 0.6) state.variant = choose(varList).value;
+
+    // agency random
+    state.agency = choose(AGENCIES).value;
+
+    // source/camera/environment/atmos
+    state.source = choose(SOURCE_MEDIUM).value;
+    state.cameraBehavior = choose(CAMERA_BEHAVIOR).value;
+    state.environment = choose(ENVIRONMENTS).value;
+    state.atmosphere = choose(ATMOSPHERE).value;
+
+    // visibility: mostly clear
+    state.visibility = choose(["clear","clear","partial","distant"]);
+
+    // scale: jackpot bias increases chance of colossal
+    const jb = clamp(state.jackpotBias,0,100);
+    const roll = Math.random() * 100;
+    if (roll < (jb * 0.55)) state.scale = "colossal";
+    else if (roll < 75) state.scale = choose(["large","mid","large","mid"]);
+    else state.scale = choose(["subtle","mid"]);
+
+    // aspect ratio: mostly 4:3 / 3:2 for period vibe
+    state.aspectRatio = choose(["4:3","4:3","4:3","3:2","1:1","16:9"]);
+
+    // propaganda: keep around your current taste but allow variation
+    const base = clamp(state.propaganda,0,100);
+    state.propaganda = clamp(base + randInt(-18, 22), 0, 100);
+    const pValEl = document.getElementById("propaganda_val");
+    if (pValEl) pValEl.textContent = String(state.propaganda);
+
+    // If manual is off, leave manual params alone; if manual on, gently nudge them too
+    if (state.manual) {
+      state.manual_s = clamp((parseInt(state.manual_s,10)||150) + randInt(-40, 60), 0, 1000);
+      state.manual_w = clamp((parseInt(state.manual_w,10)||40) + randInt(-20, 30), 0, 300);
+      state.manual_chaos = clamp((parseInt(state.manual_chaos,10)||8) + randInt(-6, 10), 0, 100);
+      // raw keep
+    }
+
+    renderControls();
+    renderPrompt();
+    toast("Randomized. Spin again for jackpot.");
+  }
+
+  // ---------- Export helpers ----------
+  function toast(msg){
+    hint.textContent = msg;
+    setTimeout(()=>{ hint.textContent=""; }, 1400);
+  }
+  async function copy(){
+    try {
+      await navigator.clipboard.writeText(finalPrompt.value);
+      toast("Copied to clipboard.");
+    } catch {
+      finalPrompt.focus(); finalPrompt.select();
+      document.execCommand("copy");
+      toast("Copied (fallback).");
+    }
+  }
+  function download(filename, text){
+    const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+  function dlTxt(){
+    const stamp = new Date().toISOString().slice(0,10);
+    download(`nafo_prompt_${stamp}.txt`, finalPrompt.value + "\n");
+    toast("Downloaded .txt");
+  }
+  function dlJson(){
+    const preset = {
+      version: "govfilm_v1",
+      state: {...state},
+      note: "Agency-locked params unless manual override. Year randomizes on update; not stored."
+    };
+    download("nafo_govfilm_preset.json", JSON.stringify(preset, null, 2));
+    toast("Downloaded .json preset");
+  }
+
+  function reset(){
+    state.classification = "cryptid";
+    state.creature = "mothman";
+    state.variant = "";
+    state.agency = "uspio";
+    state.source = "16mm";
+    state.cameraBehavior = "tripod_static";
+    state.environment = "industrial_skyline";
+    state.atmosphere = "dusk";
+    state.visibility = "clear";
+    state.scale = "large";
+    state.propaganda = 35;
+    state.jackpotBias = 55;
+    state.aspectRatio = "4:3";
+    state.manual = false;
+
+    const p = getAgencyComputedParams();
+    state.manual_s = p.s; state.manual_w = p.w; state.manual_chaos = p.chaos; state.manual_raw = p.raw;
+
+    renderControls();
+    renderPrompt();
+    toast("Reset.");
+  }
+
+  // ---------- Wire buttons ----------
+  copyBtn.addEventListener("click", copy);
+  randomBtn.addEventListener("click", randomizeAll);
+  resetBtn.addEventListener("click", reset);
+  dlTxtBtn.addEventListener("click", dlTxt);
+  dlJsonBtn.addEventListener("click", dlJson);
+
+  // ---------- Init ----------
+  renderControls();
+  renderPrompt();
+})();
+</script>
 </body>
 </html>
