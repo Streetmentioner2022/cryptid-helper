@@ -135,7 +135,7 @@
     .sliderwrap .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
     .sliderwrap .top span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-family:var(--mono)}
     input[type="range"]{width:100%}
-    .locknote{font-size:12px;color:var(--muted);line-height:1.35}
+    .locknote{font-size:12px;color:var(--muted);line-height:1.35;font-family:var(--mono)}
     .minirow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   </style>
 </head>
@@ -231,12 +231,11 @@
     box.addEventListener("change", e => onChange(e.target.checked));
     const wrap = el("div", { class:"sliderwrap" }, [
       el("div", { class:"top" }, [
-        el("span", {}, [label]),
+        el("span", { class:"mono" }, [label]),
         el("span", { class:"mono" }, [sub || ""])
       ]),
       box
     ]);
-    wrap.querySelector(".top span").classList.add("mono");
     return wrap;
   }
   function makeSlider({ id, label, value, min, max, step, left, right, onInput }) {
@@ -268,8 +267,6 @@
     { value:"wildlife", label:"Department of Wildlife & Natural Resources" },
   ];
 
-  // Agency profiles = wording + base params (locked unless Manual Override)
-  // "propaganda" will nudge these.
   const AGENCY_PROFILE = {
     uspio: {
       wording: "U.S. Public Information Office film footage",
@@ -312,7 +309,6 @@
     { value:"artifact", label:"Anomalous Artifact" }
   ];
 
-  // More choices (jackpot-friendly)
   const CREATURES = {
     cryptid: [
       { value:"mothman", label:"Mothman" },
@@ -391,7 +387,6 @@
     ]
   };
 
-  // 60s “source medium” + behavior (keeps the tone consistent)
   const SOURCE_MEDIUM = [
     { value:"16mm", label:"16mm instructional reel", add:["mild 16mm film grain","projector transfer softness"] },
     { value:"8mm", label:"8mm classroom film", add:["soft 8mm grain","more pronounced gate weave","slightly uneven exposure"] },
@@ -406,10 +401,21 @@
     { value:"instructional_cutaway", label:"Instructional cutaway framing", add:["instructional cutaway composition","specimen-centered framing"] }
   ];
 
+  // IMPORTANT FIX: Make "clear" truly subject-forward so the creature doesn’t vanish.
   const VISIBILITY = [
-    { value:"clear", label:"Clear (subject visible)", add:["clearly visible in frame"] },
-    { value:"partial", label:"Partial (obscured)", add:["partially obscured but visible"] },
-    { value:"distant", label:"Distant (far)", add:["distant subject visible in wide shot"] }
+    { value:"clear", label:"Clear (subject visible)", add:[
+      "subject clearly visible",
+      "dominant subject in frame",
+      "specimen-centered framing"
+    ]},
+    { value:"partial", label:"Partial (obscured)", add:[
+      "subject visible but partially obscured",
+      "occluded by foreground elements"
+    ]},
+    { value:"distant", label:"Distant (far)", add:[
+      "distant subject visible in wide shot",
+      "small subject but readable silhouette"
+    ]}
   ];
 
   const SCALE = [
@@ -440,11 +446,17 @@
     { value:"stormfront", label:"Stormfront sky" }
   ];
 
+  // IMPORTANT FIX: restore aspect ratios incl ultra-wide
   const ASPECT_RATIOS = [
-    { value:"4:3", label:"4:3 (TV/classroom)" },
-    { value:"3:2", label:"3:2 (photo-ish)" },
-    { value:"1:1", label:"1:1" },
-    { value:"16:9", label:"16:9 (modern)" }
+    { value:"4:3",  label:"4:3 (TV/classroom)" },
+    { value:"3:2",  label:"3:2 (photo)" },
+    { value:"2:3",  label:"2:3 (portrait photo)" },
+    { value:"1:1",  label:"1:1 (square)" },
+    { value:"16:9", label:"16:9 (widescreen)" },
+    { value:"21:9", label:"21:9 (ultra-wide)" },
+    { value:"2:1",  label:"2:1 (panorama)" },
+    { value:"3:1",  label:"3:1 (extreme panorama)" },
+    { value:"9:16", label:"9:16 (vertical)" }
   ];
 
   // ---------- State ----------
@@ -461,8 +473,8 @@
     visibility: "clear",
     scale: "large",
 
-    propaganda: 35,     // 0..100
-    jackpotBias: 55,    // 0..100 (higher = more likely colossal on Randomize)
+    propaganda: 35,
+    jackpotBias: 55,
     aspectRatio: "4:3",
 
     manual: false,
@@ -484,22 +496,16 @@
   const dlTxtBtn = document.getElementById("dlTxtBtn");
   const dlJsonBtn = document.getElementById("dlJsonBtn");
 
-  // ---------- Logic: Agency locked params + propaganda nudges ----------
+  // ---------- Logic ----------
   function yearNow(){ return randInt(1962, 1968); }
 
   function getAgencyComputedParams(){
     const base = AGENCY_PROFILE[state.agency].base;
     const p = clamp(state.propaganda, 0, 100);
-
-    // Subtle nudges:
-    // - more propaganda => slightly higher stylize + weird + chaos (but still controlled)
     const s = clamp(base.s + Math.round((p - 35) * 0.6), 60, 260);
     const w = clamp(base.w + Math.round((p - 35) * 0.35), 0, 120);
     const chaos = clamp(base.chaos + Math.round((p - 35) * 0.06), 0, 18);
-
-    // Raw stays on by default; if propaganda is very high, allow it to remain on (we keep it on always in locked mode).
     const raw = true;
-
     return { s, w, chaos, raw };
   }
 
@@ -517,41 +523,35 @@
 
   function propagandaWording(){
     const p = clamp(state.propaganda,0,100);
-    // Earnest → curated propaganda
-    if (p < 20) return ["plainspoken instructional narration", "unadorned educational tone"];
-    if (p < 45) return ["earnest instructional broadcast tone", "public information educational framing"];
-    if (p < 70) return ["carefully framed instructional messaging", "selectively presented official footage"];
-    return ["strongly curated official messaging", "staged demonstration energy, presented as fact"];
+    if (p < 20) return ["plainspoken instructional narration","unadorned educational tone"];
+    if (p < 45) return ["earnest instructional broadcast tone","public information educational framing"];
+    if (p < 70) return ["carefully framed instructional messaging","selectively presented official footage"];
+    return ["strongly curated official messaging","staged demonstration energy, presented as fact"];
   }
 
-  function environmentLabel(val){
-    const o = ENVIRONMENTS.find(x=>x.value===val);
+  function labelFrom(list, val){
+    const o = list.find(x=>x.value===val);
     return o ? o.label : val;
   }
-  function atmosphereLabel(val){
-    const o = ATMOSPHERE.find(x=>x.value===val);
-    return o ? o.label : val;
-  }
-  function classificationLabel(val){
-    const o = CLASSIFICATIONS.find(x=>x.value===val);
-    return o ? o.label : val;
-  }
+
   function creatureLabel(){
     const list = CREATURES[state.classification] || [];
     const o = list.find(x=>x.value===state.creature);
     return o ? o.label : "Unknown Subject";
   }
+
   function variantLabel(){
     const list = VARIANTS[state.creature] || [];
     const o = list.find(x=>x.value===state.variant);
     return o ? o.label : "";
   }
 
+  function findBy(list, val){ return list.find(x=>x.value===val) || list[0]; }
+
   // ---------- Render controls ----------
   function renderControls(){
     controls.innerHTML = "";
 
-    // Creature block (dynamic spawn)
     controls.appendChild(makeSelect({
       id:"classification",
       label:"CLASSIFICATION",
@@ -559,7 +559,6 @@
       value: state.classification,
       onChange:(v)=>{
         state.classification = v || "cryptid";
-        // default creature = first in list
         const list = CREATURES[state.classification] || [];
         state.creature = list[0]?.value || "";
         state.variant = "";
@@ -568,11 +567,10 @@
       }
     }));
 
-    const creatureOptions = CREATURES[state.classification] || [];
     controls.appendChild(makeSelect({
       id:"creature",
       label:"CREATURE (FIRST IN PROMPT)",
-      options: creatureOptions,
+      options: (CREATURES[state.classification] || []),
       value: state.creature,
       onChange:(v)=>{
         state.creature = v || "";
@@ -593,7 +591,6 @@
       }));
     }
 
-    // Agency
     controls.appendChild(makeSelect({
       id:"agency",
       label:"AGENCY (LOCKS STYLE + MJ DEFAULTS)",
@@ -602,7 +599,6 @@
       onChange:(v)=>{ state.agency = v || "uspio"; renderPrompt(); }
     }));
 
-    // Propaganda slider
     controls.appendChild(makeSlider({
       id:"propaganda",
       label:"PROPAGANDA FRAMING",
@@ -613,7 +609,6 @@
       onInput:(n)=>{ state.propaganda = n; renderPrompt(); }
     }));
 
-    // Jackpot bias slider
     controls.appendChild(makeSlider({
       id:"jackpot",
       label:"JACKPOT BIAS",
@@ -624,7 +619,6 @@
       onInput:(n)=>{ state.jackpotBias = n; }
     }));
 
-    // Scene + source
     controls.appendChild(makeSelect({
       id:"source",
       label:"SOURCE MEDIUM",
@@ -657,7 +651,6 @@
       onChange:(v)=>{ state.atmosphere = v || ""; renderPrompt(); }
     }));
 
-    // Presence controls
     controls.appendChild(el("div", { class:"minirow" }, [
       makeSelect({
         id:"visibility",
@@ -675,7 +668,6 @@
       })
     ]));
 
-    // Aspect ratio
     controls.appendChild(makeSelect({
       id:"ar",
       label:"ASPECT RATIO (MJ --ar)",
@@ -684,7 +676,6 @@
       onChange:(v)=>{ state.aspectRatio = v || "4:3"; renderPrompt(); }
     }));
 
-    // Manual override toggle + locked note
     const lockText = state.manual ? "Manual mode" : "Agency-locked";
     controls.appendChild(makeCheckbox({
       id:"manual",
@@ -694,7 +685,6 @@
       onChange:(checked)=>{
         state.manual = checked;
         if (!checked) {
-          // snap manual values to current computed agency params so it doesn’t jump wildly if they turn it on later
           const p = getAgencyComputedParams();
           state.manual_s = p.s; state.manual_w = p.w; state.manual_chaos = p.chaos; state.manual_raw = p.raw;
         }
@@ -703,7 +693,7 @@
       }
     }));
 
-    controls.appendChild(el("div", { class:"locknote mono" }, [
+    controls.appendChild(el("div", { class:"locknote" }, [
       state.manual
         ? "Manual Override is ON: you can tweak MJ params directly."
         : "Manual Override is OFF: Agency + Propaganda Framing set MJ params automatically."
@@ -732,7 +722,6 @@
         min:0, max:100, step:1,
         onInput:(v)=>{ state.manual_chaos = v; renderPrompt(); }
       }));
-      // raw toggle as checkbox
       const rawWrap = el("div", { class:"sliderwrap" }, [
         el("div", { class:"top" }, [
           el("span", { class:"mono" }, ["RAW MODE"]),
@@ -750,60 +739,52 @@
   }
 
   // ---------- Prompt generation ----------
-  function findMedium(){ return SOURCE_MEDIUM.find(x=>x.value===state.source) || SOURCE_MEDIUM[0]; }
-  function findCam(){ return CAMERA_BEHAVIOR.find(x=>x.value===state.cameraBehavior) || CAMERA_BEHAVIOR[0]; }
-  function findVisibility(){ return VISIBILITY.find(x=>x.value===state.visibility) || VISIBILITY[0]; }
-  function findScale(){ return SCALE.find(x=>x.value===state.scale) || SCALE[2]; }
-
   function renderPrompt(){
-    const year = yearNow(); // randomizes on every update (your option C)
+    const year = yearNow(); // randomizes every update (your choice)
     const agency = AGENCY_PROFILE[state.agency];
     const params = getParams();
 
-    const medium = findMedium();
-    const cam = findCam();
-    const vis = findVisibility();
-    const scale = findScale();
+    const medium = findBy(SOURCE_MEDIUM, state.source);
+    const cam = findBy(CAMERA_BEHAVIOR, state.cameraBehavior);
+    const vis = findBy(VISIBILITY, state.visibility);
+    const scale = findBy(SCALE, state.scale);
 
-    const toneBits = propagandaWording();
-    const tonePick = choose([...agency.tone, ...toneBits]);
+    const tonePick = choose([...agency.tone, ...propagandaWording()]);
 
     const creature = creatureLabel();
     const variant = variantLabel();
+    const creatureFull = variant ? `${creature}, ${variant}` : creature;
 
-    // Keep prompt “film language” consistent, with subtle variation
-    const intro = [
-      "presented as",
-      "released as",
-      "archived as",
-      "screened as",
-      "distributed as"
-    ];
+    const intro = ["presented as","released as","archived as","screened as","distributed as"];
 
     const stagingBits = (state.propaganda >= 70)
-      ? ["demonstration framing", "officially sanctioned presentation", "selective editorial emphasis"]
+      ? ["demonstration framing","officially sanctioned presentation","selective editorial emphasis"]
       : (state.propaganda >= 45)
-        ? ["carefully framed presentation", "official commentary implied"]
+        ? ["carefully framed presentation","official commentary implied"]
         : ["plain observational presentation"];
 
-    const common = [
-      `${creature}${variant ? ", " + variant : ""}`,
+    // FIX: reinforce creature early so it doesn't get "lost"
+    const parts = [
+      // Creature FIRST (strong anchor)
+      `${creatureFull}`,
+      // Creature repeated immediately as an explicit subject marker
+      `documented subject/specimen: ${creature}`,
       ...vis.add,
       ...scale.add,
-      `observed within ${environmentLabel(state.environment)}`,
-      `during ${atmosphereLabel(state.atmosphere)}`,
+      `observed within ${labelFrom(ENVIRONMENTS, state.environment)}`,
+      `during ${labelFrom(ATMOSPHERE, state.atmosphere)}`,
       `${choose(intro)} ${year} ${agency.wording}`,
       ...medium.add,
       ...cam.add,
+      "static tripod documentation",
       "neutral observational framing",
       "soft contrast, mid-century broadcast clarity",
       agency.color,
       "mild dust specks, light gate weave",
       choose(stagingBits),
       tonePick
-    ];
+    ].filter(Boolean);
 
-    // MJ params (locked unless manual)
     const mj = [];
     mj.push(`--ar ${state.aspectRatio || "4:3"}`);
     mj.push(`--s ${params.s}`);
@@ -811,14 +792,13 @@
     mj.push(`--chaos ${params.chaos}`);
     if (params.raw) mj.push(`--raw`);
 
-    const full = common.filter(Boolean).join(", ") + " " + mj.join(" ");
+    const full = parts.join(", ") + " " + mj.join(" ");
     finalPrompt.value = full;
     statusPill.textContent = "MJ Params: " + mj.join(" ");
   }
 
-  // ---------- Randomize All (jackpot) ----------
+  // ---------- Randomize All ----------
   function randomizeAll(){
-    // classification (weighted a bit toward cryptid/entity)
     const classPool = [
       ...Array(4).fill("cryptid"),
       ...Array(2).fill("entity"),
@@ -827,48 +807,33 @@
     state.classification = choose(classPool);
 
     const creatureList = CREATURES[state.classification] || [];
-    state.creature = (creatureList.length) ? choose(creatureList).value : "";
+    state.creature = (creatureList.length) ? choose(creatureList).value : "mothman";
     state.variant = "";
 
-    // if creature has variants, occasionally pick one
     const varList = VARIANTS[state.creature] || [];
     if (varList.length && Math.random() < 0.6) state.variant = choose(varList).value;
 
-    // agency random
     state.agency = choose(AGENCIES).value;
-
-    // source/camera/environment/atmos
     state.source = choose(SOURCE_MEDIUM).value;
     state.cameraBehavior = choose(CAMERA_BEHAVIOR).value;
     state.environment = choose(ENVIRONMENTS).value;
     state.atmosphere = choose(ATMOSPHERE).value;
 
-    // visibility: mostly clear
-    state.visibility = choose(["clear","clear","partial","distant"]);
+    state.visibility = choose(["clear","clear","clear","partial","distant"]);
 
-    // scale: jackpot bias increases chance of colossal
     const jb = clamp(state.jackpotBias,0,100);
     const roll = Math.random() * 100;
     if (roll < (jb * 0.55)) state.scale = "colossal";
     else if (roll < 75) state.scale = choose(["large","mid","large","mid"]);
     else state.scale = choose(["subtle","mid"]);
 
-    // aspect ratio: mostly 4:3 / 3:2 for period vibe
-    state.aspectRatio = choose(["4:3","4:3","4:3","3:2","1:1","16:9"]);
+    // Use the restored AR set (incl ultra-wide)
+    state.aspectRatio = choose(["4:3","4:3","3:2","16:9","21:9","2:1","1:1","9:16"]);
 
-    // propaganda: keep around your current taste but allow variation
-    const base = clamp(state.propaganda,0,100);
-    state.propaganda = clamp(base + randInt(-18, 22), 0, 100);
+    const baseP = clamp(state.propaganda,0,100);
+    state.propaganda = clamp(baseP + randInt(-18, 22), 0, 100);
     const pValEl = document.getElementById("propaganda_val");
     if (pValEl) pValEl.textContent = String(state.propaganda);
-
-    // If manual is off, leave manual params alone; if manual on, gently nudge them too
-    if (state.manual) {
-      state.manual_s = clamp((parseInt(state.manual_s,10)||150) + randInt(-40, 60), 0, 1000);
-      state.manual_w = clamp((parseInt(state.manual_w,10)||40) + randInt(-20, 30), 0, 300);
-      state.manual_chaos = clamp((parseInt(state.manual_chaos,10)||8) + randInt(-6, 10), 0, 100);
-      // raw keep
-    }
 
     renderControls();
     renderPrompt();
@@ -907,7 +872,7 @@
   }
   function dlJson(){
     const preset = {
-      version: "govfilm_v1",
+      version: "govfilm_v2",
       state: {...state},
       note: "Agency-locked params unless manual override. Year randomizes on update; not stored."
     };
@@ -940,11 +905,11 @@
   }
 
   // ---------- Wire buttons ----------
-  copyBtn.addEventListener("click", copy);
-  randomBtn.addEventListener("click", randomizeAll);
-  resetBtn.addEventListener("click", reset);
-  dlTxtBtn.addEventListener("click", dlTxt);
-  dlJsonBtn.addEventListener("click", dlJson);
+  document.getElementById("copyBtn").addEventListener("click", copy);
+  document.getElementById("randomBtn").addEventListener("click", randomizeAll);
+  document.getElementById("resetBtn").addEventListener("click", reset);
+  document.getElementById("dlTxtBtn").addEventListener("click", dlTxt);
+  document.getElementById("dlJsonBtn").addEventListener("click", dlJson);
 
   // ---------- Init ----------
   renderControls();
